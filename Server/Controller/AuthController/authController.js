@@ -1,11 +1,12 @@
 import User from "../../Model/User/userSchema.js";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 export const RegisterUser = async (req, res) => {
   try {
-    const { name, email, password, phone, role } = req.body;
+    const { name, email, password, phone, role, rentAmount, roomFloor, roomAmount ,roomNumber} = req.body;
 
-    if (!name || !email || !password || !phone || !role) {
+    if (!name || !email || !password || !phone) {
       return res.status(400).json({ message: "All required fields must be filled" });
     }
 
@@ -21,7 +22,10 @@ export const RegisterUser = async (req, res) => {
       email,
       password,
       phone,
-      role
+      role,
+      rentAmount,
+      roomFloor,
+      roomNumber
     });
 
     await newUser.save();
@@ -32,7 +36,6 @@ export const RegisterUser = async (req, res) => {
     res.status(201).json({
       message: "User registered successfully",
       data: userData,
-      token
     });
 
   } catch (error) {
@@ -42,37 +45,84 @@ export const RegisterUser = async (req, res) => {
 };
 
 
- export  const Login = async (req,res) => {
-
-    try {
+export const Login = async (req, res) => {
+  try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-        return res.status(400).json({ error: "Both fields are required" });
+      return res.status(400).json({
+        message: "Both fields are required"
+      });
     }
 
     const validUser = await User.findOne({ email });
+
     if (!validUser) {
-        return res.status(400).json({ error: "invalid credentials" });
+      return res.status(401).json({
+        message: "Invalid credentials"
+      });
     }
 
-    const validpassword = await bcrypt.compare(password, validUser.password);
-    console.log('Password comparison result:', validpassword);
+    const validpassword = await bcrypt.compare(
+      password,
+      validUser.password
+    );
 
     if (!validpassword) {
-        return res.status(400).json({ error: "Password is incorrect" });
+      return res.status(401).json({
+        message: "Password is incorrect"
+      });
     }
 
-    const token = await validUser.generateToken();
-    
-    const result = {
-        validUser,
-        token
-    };
+    const access_token = await validUser.generateToken();
 
-    res.status(200).json(result);
-} catch (error) {
-    console.error('Error during login process:', error);
-    res.status(500).json({ error: "Internal Server Error" });
-}
- }
+    res.status(200).json({
+      validUser,
+      access_token
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Internal Server Error"
+    });
+  }
+};
+
+
+
+export const logout = async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "No token provided" });
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    // Verify token
+    const decoded = jwt.verify(token,"sdoskdok");
+
+    // Find user by decoded id
+    const user = await User.findById(decoded._id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Filter out the token
+    user.tokens = user.tokens.filter((element) => {
+      return element.token !== token;
+    });
+
+    await user.save();
+
+    return res.status(200).json({ message: "User is logged out" });
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Server error during logout" });
+  }
+};

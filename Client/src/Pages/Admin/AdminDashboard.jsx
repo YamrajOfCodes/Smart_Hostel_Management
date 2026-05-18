@@ -1,4 +1,11 @@
 import { useState, useEffect } from "react";
+import RoomManagement from "./SubPages/Room_Management/RoomManagement";
+import { act } from "react";
+import ResidentDashboard from "../Resident/Residentdashboard";
+import ResidentsSection from "./SubPages/Residents/Residents";
+import { useLogout } from "../../hooks/authHooks/authHooks";
+import { protectRoute } from "../../utils/ProtectedRoutes/ProtectedRoutes";
+import { useNavigate } from "react-router-dom";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 // data
@@ -273,6 +280,12 @@ export default function AdminDashboard() {
   const [noticeList, setNoticeList] = useState(notices);
   const [search, setSearch] = useState("");
   const [mounted, setMounted] = useState(false);
+  const {mutate: logout} = useLogout();
+  const router = useNavigate();
+
+  useEffect(()=>{
+   protectRoute(router,"owner");
+  },[router]);
 
   useEffect(() => { setTimeout(() => setMounted(true), 60); }, []);
 
@@ -385,7 +398,7 @@ export default function AdminDashboard() {
                 <p className="text-sm font-semibold text-white truncate">Admin User</p>
                 <p className="text-xs text-white/40 truncate">admin@staynest.in</p>
               </div>
-              <button className="ml-auto text-white/30 hover:text-white/70 transition-colors flex-shrink-0">
+              <button className="ml-auto text-white/30 hover:text-white/70 transition-colors flex-shrink-0" onClick={()=>{logout()}}>
                 <Icon d={Icons.logout} size={16} />
               </button>
             </div>
@@ -395,8 +408,10 @@ export default function AdminDashboard() {
         {/* ── MAIN AREA ──────────────────────────────── */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
-          {/* ── TOPBAR ── */}
-          <header className="bg-white border-b border-slate-100 px-4 lg:px-6 py-3.5 flex items-center gap-3 flex-shrink-0 shadow-sm z-10">
+        {
+          activeNav === "dashboard" ?
+            <>
+              <header className="bg-white border-b border-slate-100 px-4 lg:px-6 py-3.5 flex items-center gap-3 flex-shrink-0 shadow-sm z-10">
             <button className="lg:hidden w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-600 transition-colors"
               onClick={() => setSidebarOpen(true)}>
               <Icon d={Icons.menu} size={20} />
@@ -431,7 +446,6 @@ export default function AdminDashboard() {
             </div>
           </header>
 
-          {/* ── CONTENT ── */}
           <main className="flex-1 overflow-y-auto dot-bg p-4 lg:p-6">
             <div className={`transition-opacity duration-500 ${mounted ? "opacity-100" : "opacity-0"}`}>
 
@@ -616,6 +630,11 @@ export default function AdminDashboard() {
 
             </div>
           </main>
+            </>
+          : activeNav === "rooms" ? <><RoomManagement /></> : 
+          activeNav === "users" ? <><ResidentsSection /></> : null
+
+        }
         </div>
       </div>
 

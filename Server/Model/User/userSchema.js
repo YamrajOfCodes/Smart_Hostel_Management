@@ -1,6 +1,6 @@
 import mongoose from "mongoose"
 import bcrypt from "bcrypt"
-const USER_SECRET = process.env.USER_SECRET
+const USER_SECRET = "sdoskdok"
 import jwt from "jsonwebtoken"
 
 const userSchema = new mongoose.Schema({
@@ -31,18 +31,12 @@ const userSchema = new mongoose.Schema({
     default: "student"
   },
 
-  hostel: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Hostel"
+  roomFloor:{
+    type:String
   },
 
-  room: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Room"
-  },
-
-  joiningDate: {
-    type: Date
+  roomNumber:{
+    type:String,
   },
 
   rentAmount: {
@@ -73,18 +67,25 @@ userSchema.pre("save", async function () {
 });
 
 
-userSchema.methods.generateToken=async function(req,res){
-    try {
-     const newtoekn=jwt.sign({_id:this._id},USER_SECRET,{
-       expiresIn:"1d"
-     });
-     this.tokens=this.tokens.concat({token:newtoekn})
-     await this.save();
-     return newtoekn
-   
-    } catch (errors) {
-    console.log(errors);
-    }
-   }
+userSchema.methods.generateToken = async function () {
+  try {
+    const token = jwt.sign(
+      {
+        _id: this._id,
+        role: this.role,
+      },
+      USER_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    this.tokens = this.tokens.concat({ token });
+    await this.save();
+
+    return token;
+
+  } catch (error) {
+    console.log(error);
+  }
+};
 
 export default mongoose.model("User", userSchema);

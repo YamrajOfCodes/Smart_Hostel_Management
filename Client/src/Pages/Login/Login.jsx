@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useLogin } from "../../hooks/authHooks/authHooks";
 
 const stats = [
   { value: "248", label: "Residents" },
@@ -16,6 +17,7 @@ export default function HostelLogin() {
   const [mounted, setMounted] = useState(false);
   const [focused, setFocused] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const {mutate:Login} = useLogin();
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -27,8 +29,14 @@ export default function HostelLogin() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const data = {
+      email,
+      password
+    };
+    console.log(data);
     setLoading(true);
     setTimeout(() => setLoading(false), 2000);
+    Login(data);
   };
 
   return (

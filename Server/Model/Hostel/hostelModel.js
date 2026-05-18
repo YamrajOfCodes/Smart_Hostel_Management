@@ -15,6 +15,11 @@ const hostelSchema = new mongoose.Schema(
         required:true
     },
 
+    hostelCode:{
+      type:String,
+      required:true
+    },
+
     phone: {
       type: String,
       required: true,
