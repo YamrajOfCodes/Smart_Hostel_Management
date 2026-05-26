@@ -5,7 +5,24 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {jwtDecode} from 'jwt-decode';
 import { AxiosError } from 'axios';
+import { registerUser } from '../../types/Superadmin/superAdminAPI';
 
+
+
+export const useRegister = ()=>{
+  return useMutation({
+    mutationFn: registerUser,
+      onSuccess:()=>{
+        toast.success("Admin registered successfully");
+      },
+      onError:(error)=>{
+        const message = error instanceof AxiosError && error.response?.data?.message
+        ? error.response.data.message
+        : "Something went wrong";
+       toast.error(message);
+      }
+  })
+}
 
 export const useLogin = () => {
   const navigate = useNavigate();

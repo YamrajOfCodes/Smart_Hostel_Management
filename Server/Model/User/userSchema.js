@@ -31,18 +31,6 @@ const userSchema = new mongoose.Schema({
     default: "student"
   },
 
-  roomFloor:{
-    type:String
-  },
-
-  roomNumber:{
-    type:String,
-  },
-
-  rentAmount: {
-    type: Number
-  },
-
  tokens: [
     {
       token: {

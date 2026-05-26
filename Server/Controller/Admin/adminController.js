@@ -1,4 +1,61 @@
 import RoomDb from "../../Model/Room/roomSchema.js";
+import Hostel from "../../Model/Hostel/hostelModel.js"
+
+
+export const RegisterHostel = async (req, res) => {
+  try {
+    const {hostelName, address, ownerEmail, hostelCode, phone, hostelFloors,rentAmount,room} = req.body;
+
+    if (!hostelName || !address || !ownerEmail || !hostelCode || !phone || !hostelFloors || !rentAmount || !room) {
+      return res.status(400).json({ message: "All required fields must be filled" });
+    }
+
+    const existingUser = await Hostel.findOne({ ownerEmail });
+    const existingMob  = await Hostel.findOne({phone});
+    const hostelCodeExists = await Hostel.findOne({hostelCode});
+
+    if (existingUser) {
+      return res.status(400).json({ message: "email already exists" });
+    }
+
+    if(existingMob){
+      return res.status(400).json({ message: "phone number already exists" });
+    }
+
+    if(hostelCode){
+      return res.status(400).json({message:"Code already exists"});
+    }
+
+  
+
+    const newUser = new Hostel({
+      hostelName,
+      address,
+      ownerEmail,
+      hostelCode,
+      phone,
+      hostelFloors,
+      rentAmount,
+      room
+    });
+
+    await newUser.save();
+
+    const userData = newUser.toObject();
+    delete userData.password;
+
+    return res.status(201).json({
+      message: "Hostel registered successfully",
+      data: userData,
+      token
+    });
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Server Error" });
+  }
+};
+
 
 
 

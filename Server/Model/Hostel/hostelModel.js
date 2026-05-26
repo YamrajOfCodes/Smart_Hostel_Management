@@ -10,7 +10,7 @@ const hostelSchema = new mongoose.Schema(
         type:String,
         required:true
     },
-    owner:{
+    ownerEmail:{
         type:String,
         required:true
     },
@@ -29,6 +29,11 @@ const hostelSchema = new mongoose.Schema(
     room: {
       type: String,
       default: null
+    },
+    
+    hostelFloors:{
+      type:String,
+      required:true
     },
 
     rentAmount: {
