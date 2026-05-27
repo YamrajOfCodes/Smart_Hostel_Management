@@ -4,25 +4,22 @@ import Hostel from "../../Model/Hostel/hostelModel.js"
 
 export const RegisterHostel = async (req, res) => {
   try {
-    const {hostelName, address, ownerEmail, hostelCode, phone, hostelFloors,rentAmount,room} = req.body;
+    const {hostelName, address, hostelCode, phone, hostelFloors,rentAmount,rooms} = req.body;
+    const {ownerId} = req.params;
 
-    if (!hostelName || !address || !ownerEmail || !hostelCode || !phone || !hostelFloors || !rentAmount || !room) {
+    if (!hostelName || !address || !ownerId || !hostelCode || !phone || !hostelFloors || !rentAmount || !rooms) {
       return res.status(400).json({ message: "All required fields must be filled" });
     }
 
-    const existingUser = await Hostel.findOne({ ownerEmail });
     const existingMob  = await Hostel.findOne({phone});
     const hostelCodeExists = await Hostel.findOne({hostelCode});
 
-    if (existingUser) {
-      return res.status(400).json({ message: "email already exists" });
-    }
-
+    
     if(existingMob){
       return res.status(400).json({ message: "phone number already exists" });
     }
 
-    if(hostelCode){
+    if(hostelCodeExists){
       return res.status(400).json({message:"Code already exists"});
     }
 
@@ -31,12 +28,12 @@ export const RegisterHostel = async (req, res) => {
     const newUser = new Hostel({
       hostelName,
       address,
-      ownerEmail,
+      ownerId,
       hostelCode,
       phone,
       hostelFloors,
       rentAmount,
-      room
+      room:rooms
     });
 
     await newUser.save();
@@ -47,7 +44,6 @@ export const RegisterHostel = async (req, res) => {
     return res.status(201).json({
       message: "Hostel registered successfully",
       data: userData,
-      token
     });
 
   } catch (error) {
@@ -56,75 +52,122 @@ export const RegisterHostel = async (req, res) => {
   }
 };
 
+export const getHostels = async(req,res)=>{
+  try {
+    const {ownerId} = req.params;
+    const gethostels = await Hostel.find({ownerId});
+    return res.status(200).json({message:"hostels getting successful",data:gethostels});
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({error:"error while fetching hostels"})
+  }
+}
+
+
+export const getHostelById = async(req,res)=>{
+  try {
+    const {hostelId} = req.params;
+    const gethostel = await Hostel.findById(hostelId);
+    return res.status(200).json({message:"hostels getting successful",data:gethostel});
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({error:"error while fetching hostels"})
+  }
+}
+
+export const updateHostel = async(req,res)=>{
+  try {
+    const {hostelId} = req.params;
+    const updatedHostel = await Hostel.findByIdAndUpdate(hostelId,req.body,{
+      new:true,
+      runValidators:true
+    })
+
+    if(!updatedHostel){
+      return res.status(400).json({error:"hostel is not found"});
+    }
+
+    return res.status(200).json({
+      message:"hostel updated successfully",
+      data:updatedHostel
+    })
+
+
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({error:"something went wrong while updating the hostel"});
+  }
+}
+
+
+export const deleteHostel = async(req,res)=>{
+  try {
+    const {hostelId} = req.params;
+    const getHostel = await Hostel.findByIdAndDelete(hostelId);
+
+    if(!getHostel){
+      return res.status(400).json({error:"hostel is not found"});
+    }
+
+    return res.status(200).json({
+      message:"hostel deleted successfully",
+      data:getHostel
+    })
+
+
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({error:"something went wrong while updating the hostel"});
+  }
+}
+
+
 
 
 
 export const createRoom = async (req, res) => {
   try {
     const {
-      floor,
-      roomNumber,
-      roomType,
-      beds,
-      roomMembers,
-      roomRent,
-      status,
-      amenities,
-      notes,
+      roomNumber, floor, roomCategory, roomType,
+      totalBeds, monthlyRent, securityDeposit,
+      amenities, notes
     } = req.body;
-
     const { hostelId } = req.params;
 
-
-    if (!floor || !roomNumber || !roomType || !beds || roomMembers == null || !roomRent) {
-      return res.status(400).json({ error: "All the fields are required" });
+    if (!roomNumber || !floor || !roomCategory || !roomType || !totalBeds || !monthlyRent) {
+      return res.status(400).json({ message: "All required fields must be filled" });
     }
 
-    let roomStatus = status;
-    if (!roomStatus) {
-      if (roomMembers === 0) roomStatus = "vacant";
-      else if (roomMembers >= beds) roomStatus = "occupied";
-      else roomStatus = "partial";
+    const roomExists = await RoomDb.findOne({ hostelId, roomNumber });
+    if (roomExists) {
+      return res.status(400).json({ message: "Room number already exists" });
     }
 
-    const room = new RoomDb({
-      floor,
-      roomNumber,
-      roomType,
-      beds,
-      roomMembers,
-      roomRent,
+    const newRoom = new RoomDb({
       hostelId,
-      status: roomStatus,
+      roomNumber,
+      floor,
+      roomCategory,
+      roomType,
+      totalBeds,
+      monthlyRent,
+      securityDeposit: securityDeposit || 0,
       amenities: amenities || [],
       notes: notes || "",
     });
 
-    await room.save();
+    await newRoom.save();
 
     return res.status(201).json({
       message: "Room created successfully",
-      room,
+      data: newRoom,
     });
 
   } catch (error) {
-    console.error("createRoom error:", error);
-
-    // Mongoose duplicate key (roomNumber already exists in this hostel)
-    if (error.code === 11000) {
-      return res.status(409).json({ error: "Room number already exists" });
-    }
-
-    // Mongoose validation error
-    if (error.name === "ValidationError") {
-      const messages = Object.values(error.errors).map((e) => e.message);
-      return res.status(400).json({ error: messages.join(", ") });
-    }
-
-    return res.status(500).json({ error: "Internal server error" });
+    console.log(error);
+    return res.status(500).json({ message: "Server Error" });
   }
 };
-
 
 export const getallRooms = async(req,res)=>{
     try {

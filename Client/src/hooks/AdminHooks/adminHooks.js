@@ -1,7 +1,94 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createRoom, getallRooms } from "../../types/Admin/adminAPI";
+import { createRoom, getHostels, registerHostel,updateHostel,deleteHostel, getRooms, getHostelById } from "../../types/Admin/adminAPI";
 import toast from "react-hot-toast";
 
+
+
+
+
+export const useRegisterHostel = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: registerHostel,
+
+    onSuccess: (_, variables) => {
+      toast.success("hostel registered successfully");
+      queryClient.invalidateQueries({ queryKey: ["hostel"] });
+    },
+
+    onError: (error) => {
+        console.log(error);
+      toast.error("Failed to register hostel room");
+    }
+  });
+};
+
+
+
+export const usegetHostels = (ownerId) => {
+  return useQuery({
+    queryKey: ["hostel", ownerId],
+    queryFn: () => getHostels(ownerId).then((res) => res.data),
+    enabled: !!ownerId,               
+  });
+};
+
+
+export const useGetHosetlById = (hostelId) => {
+  return useQuery({
+    queryKey: ["hostel", hostelId],
+    queryFn: () => getHostelById(hostelId).then((res) => res.data),
+    enabled: !!hostelId,           
+  });
+};
+
+
+
+
+
+export const useUpdateHostel = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateHostel,
+
+    onSuccess: (_, variables) => {
+      toast.success("hostel updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["hostel"] });
+    },
+
+    onError: (error) => {
+        console.log(error);
+      toast.error("Failed to update hostel room");
+    }
+  });
+};
+
+
+
+
+export const usedeleteHostel = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteHostel,
+
+    onSuccess: (_, variables) => {
+      toast.success("hostel deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["hostel"] });
+    },
+
+    onError: (error) => {
+      console.log(error);
+      toast.error("Failed to delete hostel room");
+    }
+  });
+};
+
+
+
+// Room Hooks
 
 
 export const useCreateRoom = () => {
@@ -17,7 +104,7 @@ export const useCreateRoom = () => {
 
     onError: (error) => {
         console.log(error);
-      toast.error("Failed to create room");
+      toast.error(error?.response?.data?.message  || "Something went wrong");
     }
   });
 };
@@ -25,9 +112,21 @@ export const useCreateRoom = () => {
 
 export const useGetRooms = (hostelId) => {
   return useQuery({
-    queryKey: ["rooms", hostelId],
-    queryFn: () => getallRooms(hostelId).then((res) => res.getrooms),
-    enabled: !!hostelId,           // ✅ don't fire if hostelId is undefined    
+    queryKey: ["room", hostelId],
+    queryFn: () => getRooms(hostelId).then((res) => res.getrooms),
+    enabled: !!hostelId,           
   });
 };
+
+
+
+
+
+
+
+
+
+
+
+
 

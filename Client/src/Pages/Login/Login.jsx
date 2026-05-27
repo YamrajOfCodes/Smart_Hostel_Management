@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useLogin } from "../../hooks/authHooks/authHooks";
+import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router-dom";
 
 const stats = [
   { value: "248", label: "Residents" },
@@ -18,6 +20,7 @@ export default function HostelLogin() {
   const [focused, setFocused] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const {mutate:Login} = useLogin();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -26,6 +29,15 @@ export default function HostelLogin() {
     setTimeout(() => setMounted(true), 80);
     return () => window.removeEventListener("resize", check);
   }, []);
+
+  useEffect(()=>{
+    const token  = localStorage.getItem("login");
+    if(!token) return;
+    const decodeToken = jwtDecode(token);
+    if(decodeToken.role == "admin"){
+      navigate("/admin");
+    }
+  },[])
 
   const handleSubmit = (e) => {
     e.preventDefault();

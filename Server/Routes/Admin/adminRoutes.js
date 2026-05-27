@@ -1,8 +1,18 @@
 import express from "express";
 const router = express.Router();
-import {createRoom,getallRooms} from "../../Controller/Admin/adminController.js";
+import {createRoom,getallRooms,getHostels,RegisterHostel,updateHostel,deleteHostel, getHostelById} from "../../Controller/Admin/adminController.js";
+import adminAuthenticate from "../../Middleware/Admin/adminAuthenticate.js";
 
-router.post("/createRoom/:hostelId",createRoom);
-router.get("/getallrooms/:hostelId",getallRooms);
+router.post("/registerHostel/:ownerId",RegisterHostel)
+router.get("/getHostels/:ownerId",getHostels)
+
+router.get("/getIndividualHostel/:hostelId",getHostelById)
+
+
+router.put("/updateHostel/:hostelId",adminAuthenticate,updateHostel)
+router.delete("/deleteHostel/:hostelId",adminAuthenticate,deleteHostel)
+
+router.post("/createRoom/:hostelId",adminAuthenticate,createRoom);
+router.get("/getallrooms/:hostelId",adminAuthenticate,getallRooms);
 
 export default router;

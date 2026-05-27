@@ -10,10 +10,6 @@ const hostelSchema = new mongoose.Schema(
         type:String,
         required:true
     },
-    ownerEmail:{
-        type:String,
-        required:true
-    },
 
     hostelCode:{
       type:String,
@@ -47,8 +43,9 @@ const hostelSchema = new mongoose.Schema(
       default: "active"
     },
 
-    hostelImage: {
-      type: String, 
+    ownerId: {
+      type: String,
+      required:true 
     }
   },
   {

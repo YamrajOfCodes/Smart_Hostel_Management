@@ -284,7 +284,7 @@ export default function AdminDashboard() {
   const router = useNavigate();
 
   useEffect(()=>{
-   protectRoute(router,"owner");
+   protectRoute(router,"admin");
   },[router]);
 
   useEffect(() => { setTimeout(() => setMounted(true), 60); }, []);

@@ -2,523 +2,319 @@ import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+import { X, BedDouble, Plus, Loader2,  Wifi, Snowflake, Tv, Flame, Wind,
+  Bath, ParkingCircle, WashingMachine, Building2, Camera} from "lucide-react";
 
-// ─── VALIDATION SCHEMA ────────────────────────────────────────
+// ── Validation ─────────────────────────────────────────────────────────
 const schema = yup.object({
-  floor: yup
-    .string()
-    .required("Floor is required"),
-
-  roomNumber: yup
-    .string()
-    .required("Room number is required")
-    .matches(/^[A-Za-z0-9\-]+$/, "Only letters, numbers and hyphens allowed")
-    .max(10, "Max 10 characters"),
-
-  roomType: yup
-    .string()
-    .oneOf(["AC", "Non-AC"], "Select a valid room type")
-    .required("Room type is required"),
-
-  roomSharing: yup
-    .number()
-    .typeError("Must be a number")
-    .min(1, "Minimum 1 bed")
-    .max(10, "Maximum 10 beds")
-    .integer("Must be a whole number")
-    .required("Number of beds is required"),
-
-  roomRent: yup
-    .number()
-    .typeError("Must be a valid amount")
-    .min(1, "Rent must be greater than 0")
-    .required("Monthly rent is required"),
-
-  roomMembers: yup
-    .number()
-    .typeError("Must be a number")
-    .min(0, "Cannot be negative")
-    .integer("Must be a whole number")
-    .required("Current occupancy is required")
-    .test(
-      "not-exceeds-sharing",
-      "Occupancy cannot exceed total beds",
-      function (value) {
-        const { roomSharing } = this.parent;
-        if (!roomSharing || value === undefined) return true;
-        return value <= roomSharing;
-      }
-    ),
-
-  status: yup
-    .string()
-    .oneOf(["vacant", "occupied", "partial", "maintenance"])
-    .required("Status is required"),
-
-  amenities: yup.array().of(yup.string()).default([]),
-
-  notes: yup.string().max(300, "Max 300 characters").optional(),
+  floor:        yup.string().required("Floor is required"),
+  roomNumber:   yup.string().required("Room number is required").matches(/^[A-Za-z0-9\-]+$/, "Letters, numbers and hyphens only").max(10, "Max 10 characters"),
+  roomCategory: yup.string().oneOf(["AC", "Non-AC"], "Select a valid type").required("Room type is required"),
+  roomType:     yup.string().oneOf(["Single", "Double", "Triple", "Quad", "Dormitory"]).required("Sharing type is required"),
+  totalBeds:    yup.number().typeError("Must be a number").min(1, "Min 1 bed").max(10, "Max 10 beds").integer().required("Total beds required"),
+  roomMembers:  yup.number().typeError("Must be a number").min(0).integer().required("Occupancy required")
+    .test("not-exceeds", "Cannot exceed total beds", function (val) {
+      return val <= this.parent.totalBeds;
+    }),
+  monthlyRent:  yup.number().typeError("Enter a valid amount").min(1, "Required").required("Rent is required"),
+  securityDeposit: yup.number().typeError("Enter a valid amount").min(0).default(0),
+  status:       yup.string().oneOf(["vacant", "occupied", "partial", "maintenance"]).required(),
+  amenities:    yup.array().of(yup.string()).default([]),
+  notes:        yup.string().max(300, "Max 300 characters").optional(),
 });
 
-// ─── CONSTANTS ────────────────────────────────────────────────
-const FLOORS = ["Ground Floor", "1st Floor", "2nd Floor", "3rd Floor"];
-
-const ROOM_TYPES = [
-  { value: "AC",    label: "AC" },
-  { value: "Non-AC",   label: "Non-AC" },
-];
-
+// ── Constants ──────────────────────────────────────────────────────────
+const SHARING_TYPES = ["Single", "Double", "Triple", "Quad", "Dormitory"];
 const STATUS_OPTIONS = [
-  { value: "vacant",      label: "Vacant" },
-  { value: "occupied",    label: "Occupied" },
-  { value: "partial",     label: "Partial" },
-  { value: "maintenance", label: "Maintenance" },
+  { value: "vacant",      label: "Vacant",      color: "text-emerald-700 bg-emerald-50 border-emerald-200" },
+  { value: "occupied",    label: "Occupied",    color: "text-blue-700 bg-blue-50 border-blue-200" },
+  { value: "partial",     label: "Partial",     color: "text-amber-700 bg-amber-50 border-amber-200" },
+  { value: "maintenance", label: "Maintenance", color: "text-rose-700 bg-rose-50 border-rose-200" },
 ];
 
 const AMENITIES = [
-  { id: "wifi",          label: "Wi-Fi" },
-  { id: "ac",            label: "AC" },
-  { id: "tv",            label: "TV" },
-  { id: "geyser",        label: "Geyser" },
-  { id: "fridge",        label: "Fridge" },
-  { id: "attached_bath", label: "Attached Bath" },
-  { id: "parking",       label: "Parking" },
-  { id: "laundry",       label: "Laundry" },
+  { id: "wifi",          label: "Wi-Fi",       icon: Wifi },
+  { id: "ac",            label: "AC",          icon: Snowflake },
+  { id: "tv",            label: "TV",          icon: Tv },
+  { id: "geyser",        label: "Geyser",      icon: Flame },
+  { id: "fridge",        label: "Fridge",      icon: Wind },
+  { id: "attached_bath", label: "Attach Bath", icon: Bath },
+  { id: "parking",       label: "Parking",     icon: ParkingCircle },
+  { id: "laundry",       label: "Laundry",     icon: WashingMachine },
+  { id: "balcony",       label: "Balcony",     icon: Building2 },
+  { id: "cctv",          label: "CCTV",        icon: Camera },
 ];
 
-// ─── FIELD ERROR ──────────────────────────────────────────────
+// ── Helpers ────────────────────────────────────────────────────────────
 function FieldError({ message }) {
   if (!message) return null;
   return (
-    <span style={{
-      fontSize: "11px",
-      color: "#e24b4a",
-      marginTop: "4px",
-      display: "flex",
-      alignItems: "center",
-      gap: "4px",
-    }}>
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-      </svg>
+    <p className="mt-1 text-[11px] text-rose-500 flex items-center gap-1">
+      <span className="inline-block w-3 h-3 rounded-full border border-rose-400 text-center leading-3 text-[9px]">!</span>
       {message}
-    </span>
+    </p>
   );
 }
 
-// ─── LABEL ────────────────────────────────────────────────────
 function Label({ children, required }) {
   return (
-    <label style={{
-      fontSize: "12px",
-      fontWeight: 500,
-      color: "#64748b",
-      display: "block",
-      marginBottom: "6px",
-      letterSpacing: "0.01em",
-    }}>
+    <label className="block text-xs font-semibold text-slate-500 mb-1.5 tracking-wide">
       {children}
-      {required && <span style={{ color: "#e24b4a", marginLeft: "3px" }}>*</span>}
+      {required && <span className="text-rose-400 ml-0.5">*</span>}
     </label>
   );
 }
 
-// ─── INPUT STYLES ─────────────────────────────────────────────
-const inputStyle = (hasError) => ({
-  width: "100%",
-  boxSizing: "border-box",
-  padding: "9px 12px",
-  fontSize: "13.5px",
-  border: `1px solid ${hasError ? "#fca5a5" : "#e2e8f0"}`,
-  borderRadius: "10px",
-  outline: "none",
-  background: hasError ? "#fff5f5" : "#f8fafc",
-  color: "#0f172a",
-  transition: "border-color 0.15s, box-shadow 0.15s",
-  fontFamily: "inherit",
-});
+const inputCls = (err) =>
+  `w-full px-3 py-2.5 text-sm rounded-xl border bg-slate-50 text-slate-800 outline-none transition-all
+   focus:bg-white focus:ring-2 focus:ring-slate-200
+   ${err ? "border-rose-300 bg-rose-50 focus:ring-rose-100" : "border-slate-200"}`;
 
-const selectStyle = (hasError) => ({
-  ...inputStyle(hasError),
-  appearance: "none",
-  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
-  backgroundRepeat: "no-repeat",
-  backgroundPosition: "right 12px center",
-  paddingRight: "32px",
-  cursor: "pointer",
-});
-
-// ─── MAIN COMPONENT ───────────────────────────────────────────
-export default function AddRoomModal({ onClose, onSubmit: onSubmitProp }) {
+// ── Component ──────────────────────────────────────────────────────────
+export default function AddRoomModal({ onClose, onSubmit: onSubmitProp,Floors }) {
   const {
-    register,
-    handleSubmit,
-    control,
-    watch,
-    setValue,
+    register, handleSubmit, control, watch, setValue,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
-      floor: "",
-      roomNumber: "",
-      roomType: "",
-      roomSharing: "",
-      roomMembers: 0,
-      roomRent: "",
-      status: "vacant",
-      amenities: [],
-      notes: "",
+      floor: "", roomNumber: "", roomCategory: "", roomType: "",
+      totalBeds: "", roomMembers: 0, monthlyRent: "", securityDeposit: "",
+      status: "vacant", amenities: [], notes: "",
     },
   });
 
-  // Auto-derive status from members vs sharing
-  const watchSharing = watch("roomSharing");
+  // Auto-derive status
+  const watchBeds    = watch("totalBeds");
   const watchMembers = watch("roomMembers");
   useEffect(() => {
-    const sharing = Number(watchSharing);
+    const beds    = Number(watchBeds);
     const members = Number(watchMembers);
-    if (!sharing) return;
-    if (members === 0) setValue("status", "vacant");
-    else if (members >= sharing) setValue("status", "occupied");
-    else setValue("status", "partial");
-  }, [watchSharing, watchMembers, setValue]);
+    if (!beds) return;
+    if (members === 0)          setValue("status", "vacant");
+    else if (members >= beds)   setValue("status", "occupied");
+    else                        setValue("status", "partial");
+  }, [watchBeds, watchMembers, setValue]);
+
+  const watchAmenities = watch("amenities") || [];
+  const toggleAmenity  = (id) =>
+    setValue("amenities", watchAmenities.includes(id)
+      ? watchAmenities.filter(amnty => amnty !== id)
+      : [...watchAmenities, id]
+    );
 
   const onSubmit = async (data) => {
-    // Simulate API delay
-    await new Promise((res) => setTimeout(res, 600));
-    console.log("Payload →", data);
-    if (onSubmitProp) onSubmitProp(data);
-    if (onClose) onClose();
-  };
-
-  // Amenities toggle helper
-  const watchAmenities = watch("amenities");
-  const toggleAmenity = (id) => {
-    const current = watchAmenities || [];
-    setValue(
-      "amenities",
-      current.includes(id) ? current.filter((a) => a !== id) : [...current, id]
-    );
+     onSubmitProp(data)
   };
 
   return (
     <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.45)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 50,
-        padding: "1rem",
-      }}
-      onClick={(e) => e.target === e.currentTarget && onClose?.()}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
+      onClick={e => e.target === e.currentTarget && onClose?.()}
     >
-      <div style={{
-        background: "#fff",
-        borderRadius: "20px",
-        width: "100%",
-        maxWidth: "560px",
-        maxHeight: "90vh",
-        overflow: "hidden",
-        display: "flex",
-        flexDirection: "column",
-        boxShadow: "0 24px 60px rgba(0,0,0,0.18)",
-      }}>
+      <div className="bg-white rounded-2xl w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden"
+        style={{ boxShadow: "0 24px 60px rgba(0,0,0,0.18)" }}>
 
-        {/* ── HEADER ── */}
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "1.25rem 1.5rem",
-          borderBottom: "1px solid #f1f5f9",
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <div style={{
-              width: "38px", height: "38px",
-              borderRadius: "12px",
-              background: "#0f172a",
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round">
-                <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4M9 9v.01M9 12v.01M9 15v.01M9 18v.01"/>
-              </svg>
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center">
+              <BedDouble size={17} className="text-white" />
             </div>
             <div>
-              <p style={{ margin: 0, fontSize: "15px", fontWeight: 600, color: "#0f172a" }}>Add new room</p>
-              <p style={{ margin: 0, fontSize: "12px", color: "#94a3b8" }}>Fill in all required fields</p>
+              <p className="text-[15px] font-bold text-slate-900">Add new room</p>
+              <p className="text-xs text-slate-400">Fill in all required fields</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            style={{
-              width: "32px", height: "32px",
-              borderRadius: "8px",
-              border: "1px solid #e2e8f0",
-              background: "transparent",
-              cursor: "pointer",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              color: "#94a3b8",
-            }}
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
+          <button onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all">
+            <X size={15} />
           </button>
         </div>
 
-        {/* ── FORM BODY ── */}
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          style={{ overflowY: "auto", flex: 1, padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem" }}
-        >
+        {/* Form */}
+        <form onSubmit={handleSubmit(onSubmit)} className="overflow-y-auto flex-1 px-6 py-5 flex flex-col gap-5">
 
-          {/* Row 1: Floor + Room Number */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-            <div>
-              <Label required>Floor</Label>
-              <select {...register("floor")} style={selectStyle(!!errors.floor)}>
-                <option value="">Select floor</option>
-                {FLOORS.map((f) => <option key={f} value={f}>{f}</option>)}
-              </select>
-              <FieldError message={errors.floor?.message} />
-            </div>
-            <div>
-              <Label required>Room number</Label>
-              <input
-                {...register("roomNumber")}
-                placeholder="e.g. A-101"
-                style={inputStyle(!!errors.roomNumber)}
-              />
-              <FieldError message={errors.roomNumber?.message} />
-            </div>
-          </div>
-
-          {/* Row 2: Room Type */}
+          {/* Section: Location */}
           <div>
-            <Label required>Room type</Label>
-            <Controller
-              name="roomType"
-              control={control}
-              render={({ field }) => (
-                <div style={{ display: "flex", gap: "8px" }}>
-                  {ROOM_TYPES.map((rt) => {
-                    const active = field.value === rt.value;
-                    return (
-                      <button
-                        key={rt.value}
-                        type="button"
-                        onClick={() => field.onChange(rt.value)}
-                        style={{
-                          flex: 1,
-                          padding: "9px 12px",
-                          fontSize: "13px",
-                          fontWeight: 500,
-                          border: `1px solid ${active ? "#0f172a" : "#e2e8f0"}`,
-                          borderRadius: "10px",
-                          background: active ? "#0f172a" : "#f8fafc",
-                          color: active ? "#fff" : "#475569",
-                          cursor: "pointer",
-                          transition: "all 0.15s",
-                          fontFamily: "inherit",
-                        }}
-                      >
-                        {rt.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            />
-            <FieldError message={errors.roomType?.message} />
-          </div>
-
-          {/* Row 3: Beds (roomSharing) + Current Members */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-            <div>
-              <Label required>Total beds</Label>
-              <input
-                {...register("roomSharing")}
-                type="number"
-                min="1"
-                max="10"
-                placeholder="e.g. 4"
-                style={inputStyle(!!errors.roomSharing)}
-              />
-              <FieldError message={errors.roomSharing?.message} />
-            </div>
-            <div>
-              <Label required>Current occupancy</Label>
-              <input
-                {...register("roomMembers")}
-                type="number"
-                min="0"
-                placeholder="e.g. 2"
-                style={inputStyle(!!errors.roomMembers)}
-              />
-              <FieldError message={errors.roomMembers?.message} />
-            </div>
-          </div>
-
-          {/* Row 4: Rent + Auto Status */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-            <div>
-              <Label required>Monthly rent (₹)</Label>
-              <div style={{ position: "relative" }}>
-                <span style={{
-                  position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)",
-                  fontSize: "13px", color: "#94a3b8", pointerEvents: "none",
-                }}>₹</span>
-                <input
-                  {...register("roomRent")}
-                  type="number"
-                  min="0"
-                  placeholder="8500"
-                  style={{ ...inputStyle(!!errors.roomRent), paddingLeft: "26px" }}
-                />
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">Location</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label required>Floor</Label>
+                <select {...register("floor")} className={inputCls(errors.floor)}>
+                  <option value="">Select floor</option>
+                  {Floors.map(floor => floor !== "All"  && <option key={floor} value={floor}>{
+                    `${floor}${floor == 1
+                        ? "st"
+                        : floor == 2
+                          ? "nd"
+                          : floor == 3
+                            ? "rd"
+                            : "th"
+                      } Floor`
+                  } </option>)}
+                </select>
+                <FieldError message={errors.floor?.message} />
               </div>
-              <FieldError message={errors.roomRent?.message} />
-            </div>
-            <div>
-              <Label required>Status</Label>
-              <select {...register("status")} style={selectStyle(!!errors.status)}>
-                {STATUS_OPTIONS.map((s) => (
-                  <option key={s.value} value={s.value}>{s.label}</option>
-                ))}
-              </select>
-              <FieldError message={errors.status?.message} />
-              <span style={{ fontSize: "11px", color: "#94a3b8", marginTop: "4px", display: "block" }}>
-                Auto-set from occupancy
-              </span>
+              <div>
+                <Label required>Room number</Label>
+                <input {...register("roomNumber")} placeholder="e.g. A-101"
+                  className={inputCls(errors.roomNumber)} />
+                <FieldError message={errors.roomNumber?.message} />
+              </div>
             </div>
           </div>
 
-          {/* Amenities */}
+          {/* Section: Room Type */}
           <div>
-            <Label>Amenities</Label>
-            <Controller
-              name="amenities"
-              control={control}
-              render={() => (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-                  {AMENITIES.map((a) => {
-                    const active = (watchAmenities || []).includes(a.id);
-                    return (
-                      <button
-                        key={a.id}
-                        type="button"
-                        onClick={() => toggleAmenity(a.id)}
-                        style={{
-                          padding: "6px 14px",
-                          fontSize: "12px",
-                          fontWeight: 500,
-                          border: `1px solid ${active ? "#0f172a" : "#e2e8f0"}`,
-                          borderRadius: "8px",
-                          background: active ? "#0f172a" : "#f8fafc",
-                          color: active ? "#fff" : "#475569",
-                          cursor: "pointer",
-                          transition: "all 0.15s",
-                          fontFamily: "inherit",
-                        }}
-                      >
-                        {a.label}
-                      </button>
-                    );
-                  })}
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">Room Type</p>
+
+            {/* AC / Non-AC */}
+            <div className="mb-3">
+              <Label required>Category</Label>
+              <Controller name="roomCategory" control={control} render={({ field }) => (
+                <div className="grid grid-cols-2 gap-2">
+                  {["AC", "Non-AC"].map(opt => (
+                    <button key={opt} type="button" onClick={() => field.onChange(opt)}
+                      className={`py-2.5 rounded-xl text-sm font-semibold border transition-all
+                        ${field.value === opt
+                          ? "bg-slate-900 text-white border-slate-900"
+                          : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"}`}>
+                      {opt === "AC" ? "❄️ AC" : "🌀 Non-AC"}
+                    </button>
+                  ))}
                 </div>
-              )}
-            />
+              )} />
+              <FieldError message={errors.roomCategory?.message} />
+            </div>
+
+            {/* Sharing type */}
+            <div>
+              <Label required>Sharing type</Label>
+              <Controller name="roomType" control={control} render={({ field }) => (
+                <div className="flex flex-wrap gap-2">
+                  {SHARING_TYPES.map(opt => (
+                    <button key={opt} type="button" onClick={() => field.onChange(opt)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all
+                        ${field.value === opt
+                          ? "bg-slate-900 text-white border-slate-900"
+                          : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"}`}>
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              )} />
+              <FieldError message={errors.roomType?.message} />
+            </div>
+          </div>
+
+          {/* Section: Capacity */}
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">Capacity</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label required>Total beds</Label>
+                <input {...register("totalBeds")} type="number" min="1" max="10" placeholder="e.g. 3"
+                  className={inputCls(errors.totalBeds)} />
+                <FieldError message={errors.totalBeds?.message} />
+              </div>
+              <div>
+                <Label required>Current occupancy</Label>
+                <input {...register("roomMembers")} type="number" min="0" placeholder="e.g. 1"
+                  className={inputCls(errors.roomMembers)} />
+                <FieldError message={errors.roomMembers?.message} />
+              </div>
+            </div>
+          </div>
+
+          {/* Section: Pricing */}
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">Pricing</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label required>Monthly rent</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium">₹</span>
+                  <input {...register("monthlyRent")} type="number" min="0" placeholder="8,500"
+                    className={`${inputCls(errors.monthlyRent)} pl-7`} />
+                </div>
+                <FieldError message={errors.monthlyRent?.message} />
+              </div>
+              <div>
+                <Label>Security deposit</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium">₹</span>
+                  <input {...register("securityDeposit")} type="number" min="0" placeholder="10,000"
+                    className={`${inputCls(errors.securityDeposit)} pl-7`} />
+                </div>
+                <FieldError message={errors.securityDeposit?.message} />
+              </div>
+            </div>
+          </div>
+
+          {/* Section: Status */}
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">Status</p>
+            <Controller name="status" control={control} render={({ field }) => (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {STATUS_OPTIONS.map(s => (
+                  <button key={s.value} type="button" onClick={() => field.onChange(s.value)}
+                    className={`py-2 rounded-xl text-xs font-semibold border transition-all
+                      ${field.value === s.value ? s.color : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"}`}>
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            )} />
+            <p className="text-[11px] text-slate-400 mt-1.5">Auto-set based on occupancy</p>
+          </div>
+
+          {/* Section: Amenities */}
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">Amenities</p>
+            <div className="flex flex-wrap gap-2">
+              {AMENITIES.map(amenity => {
+                const active = watchAmenities.includes(amenity.id);
+                const Icon = amenity.icon;
+                return (
+                  <button key={amenity.id} type="button" onClick={() => toggleAmenity(amenity.id)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all flex items-center gap-1.5
+                       not-only:${active
+                        ? "bg-slate-900 text-white border-slate-900"
+                        : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"}`}>
+                    <Icon size={13} />
+                    {amenity.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Notes */}
           <div>
-            <Label>
-              Notes{" "}
-              <span style={{ fontWeight: 400, color: "#cbd5e1" }}>(optional)</span>
-            </Label>
-            <textarea
-              {...register("notes")}
-              rows={2}
-              placeholder="Any additional details about this room…"
-              style={{
-                ...inputStyle(!!errors.notes),
-                resize: "vertical",
-                lineHeight: "1.5",
-                minHeight: "64px",
-              }}
-            />
+            <Label>Notes <span className="text-slate-300 font-normal">(optional)</span></Label>
+            <textarea {...register("notes")} rows={2} placeholder="Any additional details about this room…"
+              className={`${inputCls(errors.notes)} resize-none leading-relaxed`} />
             <FieldError message={errors.notes?.message} />
           </div>
 
-          {/* ── FOOTER ── */}
-          <div style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            gap: "10px",
-            paddingTop: "0.5rem",
-            borderTop: "1px solid #f1f5f9",
-            marginTop: "0.5rem",
-          }}>
-            <button
-              type="button"
-              onClick={onClose}
-              style={{
-                padding: "9px 20px",
-                fontSize: "13px",
-                fontWeight: 500,
-                borderRadius: "10px",
-                border: "1px solid #e2e8f0",
-                background: "#f8fafc",
-                color: "#475569",
-                cursor: "pointer",
-                fontFamily: "inherit",
-              }}
-            >
+          {/* Footer */}
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 mt-1">
+            <button type="button" onClick={onClose}
+              className="px-5 py-2.5 text-sm font-semibold text-slate-600 border border-slate-200 rounded-xl bg-slate-50 hover:bg-slate-100 transition-all">
               Cancel
             </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              style={{
-                padding: "9px 22px",
-                fontSize: "13px",
-                fontWeight: 600,
-                borderRadius: "10px",
-                border: "none",
-                background: isSubmitting ? "#94a3b8" : "#0f172a",
-                color: "#fff",
-                cursor: isSubmitting ? "not-allowed" : "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                transition: "background 0.15s",
-                fontFamily: "inherit",
-              }}
-            >
-              {isSubmitting ? (
-                <>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation: "spin 0.8s linear infinite" }}>
-                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-                  </svg>
-                  Saving…
-                </>
-              ) : (
-                <>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-                  </svg>
-                  Add room
-                </>
-              )}
+            <button type="submit" disabled={isSubmitting}
+              className="px-5 py-2.5 text-sm font-semibold text-white bg-slate-900 hover:bg-slate-700 disabled:bg-slate-400 rounded-xl flex items-center gap-2 transition-all">
+              {isSubmitting
+                ? <><Loader2 size={14} className="animate-spin" /> Saving…</>
+                : <><Plus size={14} /> Add room</>
+              }
             </button>
           </div>
+
         </form>
       </div>
-
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

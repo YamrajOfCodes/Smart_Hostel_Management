@@ -1,9 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AdminDashboard from "../AdminDashboard";
 import { useLogout } from "../../../hooks/authHooks/authHooks";
 import HostelCard from "../../../components/AdminComponents/HostelCard/HostelCard";
 import SummaryStrip from "../../../components/AdminComponents/SummaryCard/SummaryStrip";
-import {Outlet} from "react-router-dom"
+import {Outlet, useNavigate} from "react-router-dom"
+import { protectRoute } from "../../../utils/ProtectedRoutes/ProtectedRoutes";
+import { jwtDecode } from "jwt-decode";
+import AddHostelModal from "../../../components/Models/AddHostelModal";
+import { usedeleteHostel, usegetHostels, useRegisterHostel, useUpdateHostel } from "../../../hooks/AdminHooks/adminHooks";
+import toast from "react-hot-toast";
+import DeleteModal from "../../../components/Models/DeleteModal";
 
 
 const hostelsData = [
@@ -54,8 +60,66 @@ const hostelsData = [
 ];
 
 export default function HostelOverview() {
+
+    const login = localStorage.getItem("login");
+    const decodeToken = jwtDecode(login);
+    // console.log(decodeToken);
+
   const [selectedHostel, setSelectedHostel] = useState(null);
+  const [hostelModel,setHostelModal] = useState(false);
+  
+    const [editId,setEditId] = useState(null);
+    const [editText,setEditText] = useState({});
+
+    const [ShowDeleteModal,setShowDeleteModal] = useState(false);
+    const [deleteHostelName,setDeleteHostelName] = useState({})
+
   const { mutate: logout } = useLogout();
+  const {mutate:createhostel} = useRegisterHostel();
+  const {mutate:updatehostel} = useUpdateHostel();
+  const {mutate:deletehostel} = usedeleteHostel();
+  const {data:getAssociateHostels} = usegetHostels(decodeToken?._id)
+  const navigate = useNavigate();
+
+
+    
+    const handleEdit = (id,editData)=>{
+      setEditId(id);
+      setEditText(editData);
+      setHostelModal(true);
+    }
+
+  // console.log(getAssociateHostels)
+
+
+  const handleHostelModel = ()=>{
+    setEditId(null);
+    setEditText({});
+    setHostelModal(false);
+  }
+
+ const handleDelete = (id)=>{
+  deletehostel(id)
+ }
+
+  const handleHostel = (data)=>{
+    data.ownerId = decodeToken._id;
+    console.log(editId);
+    console.log(data)
+    editId !== null ? updatehostel({data,editId},{
+      onSuccess:()=>{
+        setEditId(null);
+        setEditText({});
+      }
+    }) :createhostel(data);
+    setHostelModal(false);
+  }
+  
+
+
+useEffect(()=>{
+  protectRoute(navigate, 'admin');
+},[]);
 
 
 
@@ -106,7 +170,8 @@ export default function HostelOverview() {
         <main className="w-full mx-auto px-4 sm:px-6 py-8">
 
           {/* Page title */}
-          <div className="mb-6">
+       <div className="flex">
+           <div className="mb-6">
             <h1 className="font-display text-2xl font-bold text-slate-800">
               Your Hostels
             </h1>
@@ -115,22 +180,41 @@ export default function HostelOverview() {
             </p>
           </div>
 
+          <div className="ml-auto">
+            <button
+              onClick={() => setHostelModal(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-sm font-semibold transition-all shadow-lg shadow-blue-600/25"
+            >
+              Add New Hostel
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+            </button>
+          </div>
+       </div>
+
           {/* Summary numbers */}
           <SummaryStrip hostels={hostelsData} />
           
 
           {/* Hostel cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {hostelsData.map((hostel) => (
+            {getAssociateHostels?.map((hostel) => (
               <HostelCard
                 key={hostel.id}
                 hostel={hostel}
                 onClick={() => setSelectedHostel(hostel)}
+                editId={editId}
+                setEditId={setEditId}
+                editText={editText}
+                handleEdit={handleEdit}
+                setShowDeleteModal={setShowDeleteModal}
+                setDeleteId={setDeleteHostelName}
               />
             ))}
 
             {/* Add new hostel card */}
-            <div className="border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center min-h-[260px] cursor-pointer hover:border-blue-300 hover:bg-blue-50/30 transition-all group">
+            <div className="border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center min-h-[260px] cursor-pointer hover:border-blue-300 hover:bg-blue-50/30 transition-all group" onClick={()=>{setHostelModal(true)}}>
               <div className="w-10 h-10 rounded-full border-2 border-dashed border-slate-300 group-hover:border-blue-400 flex items-center justify-center text-slate-400 group-hover:text-blue-500 text-2xl transition-colors">
                 +
               </div>
@@ -142,6 +226,28 @@ export default function HostelOverview() {
 
         </main>
       </div>
+
+      {
+        hostelModel && 
+        <AddHostelModal 
+        onClose={handleHostelModel} 
+        onSubmit={handleHostel}
+        editId={editId}
+        setEditId={setEditId}
+        editText={editText}
+        />
+      }
+
+      {
+        ShowDeleteModal && (
+          <DeleteModal
+          isOpen={ShowDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={() => handleDelete(deleteHostelName.deleteId)}
+          itemName={deleteHostelName.hostelname}
+      />
+        )
+      }
     </>
   );
 }

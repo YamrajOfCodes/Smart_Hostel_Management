@@ -38,12 +38,12 @@ export const useLogin = () => {
 
       const decoded = jwtDecode(token);
 
-      if (decoded.role === "owner") {
+      if (decoded.role === "admin") {
         navigate("/admin");
       } else if (decoded.role === "student") {
         navigate("/student");
       } else if (decoded.role === "superadmin") {
-        navigate("/super-admin");
+        navigate("/superadmin");
       } else {
         navigate("/");
       }

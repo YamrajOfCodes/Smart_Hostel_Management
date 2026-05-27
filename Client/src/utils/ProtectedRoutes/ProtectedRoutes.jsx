@@ -4,7 +4,6 @@ export const protectRoute = (router, allowedRole) => {
   const token = localStorage.getItem('login');
 
   if (!token || token === 'undefined' || token === 'null') {
-    localStorage.removeItem('login');
     router('/');
     return;
   }
@@ -12,7 +11,7 @@ export const protectRoute = (router, allowedRole) => {
   try {
     const decoded = jwtDecode(token);
 
-    console.log(decoded.role,allowedRole);
+    // console.log(decoded);
 
     if (decoded.role !== allowedRole) {
       localStorage.removeItem('login');
