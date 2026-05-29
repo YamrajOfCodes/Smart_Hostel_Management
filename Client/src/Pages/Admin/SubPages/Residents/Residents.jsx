@@ -1,6 +1,8 @@
 import { useState } from "react";
 import ResidentCard from "../../../../components/AdminComponents/ResidentSection/ResidentCard/ResidentCard";
 import AddResidentModal from "../../../../components/Models/AddResidentModal";
+import { useAssignedRoom, useGetHosetlById, useGetRooms } from "../../../../hooks/AdminHooks/adminHooks";
+import { useParams } from "react-router-dom";
 
 // ─────────────────────────────────────────────────────
 // ICONS
@@ -124,6 +126,17 @@ export default function ResidentsSection() {
 
   const [search, setSearch] = useState("");
 
+   const {id} = useParams();
+  const {data:gethostelById} = useGetHosetlById(id);
+   const {data:rooms} = useGetRooms(id);
+   const {mutate:assigneroom} = useAssignedRoom();
+
+
+ const floors =  Array.from({length:gethostelById?.hostelFloors}).map((element,index)=> index+1);
+
+
+  console.log(gethostelById)
+
   const [showModal, setShowModal] = useState(false);
 
   const filteredResidents = residents.filter((r) =>
@@ -131,6 +144,9 @@ export default function ResidentsSection() {
   );
 
   const addResident = (resident) => {
+    console.log(resident)
+    assigneroom(resident)
+    resident.hostelId = id;
     setResidents((prev) => [resident, ...prev]);
   };
 
@@ -275,6 +291,8 @@ export default function ResidentsSection() {
         <AddResidentModal
           onClose={() => setShowModal(false)}
           onAdd={addResident}
+          floors={floors}
+          rooms={rooms}
         />
       )}
     </>

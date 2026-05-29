@@ -112,3 +112,19 @@ export const getRooms = async (hostelId) => {
 
 
 
+export const assignRoom = async (data) => {
+  const token = localStorage.getItem('login');
+  const res =  await api.put(
+    `/admin/assignRoom/${data.hostelId}`,
+    data,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return res.data;
+};
+
+
+

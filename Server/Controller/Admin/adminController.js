@@ -1,5 +1,6 @@
 import RoomDb from "../../Model/Room/roomSchema.js";
 import Hostel from "../../Model/Hostel/hostelModel.js"
+import User from "../../Model/User/userSchema.js"
 
 
 export const RegisterHostel = async (req, res) => {
@@ -176,5 +177,74 @@ export const getallRooms = async(req,res)=>{
     } catch (error) {
         console.log(error);
         return res.status(400).json({error:"something went wrong while getting rooms",error});
+    }
+}
+
+
+export const assignedRoom = async(req,res)=>{
+    try {
+      const { name, email, password, phone,role,joiningDate,deposite,room} = req.body;
+  
+      if (!name || !email || !password || !phone ) {
+        return res.status(400).json({ message: "All required fields must be filled" });
+      }
+  
+      const existingUser = await User.findOne({ email });
+      const existingMob  = await User.findOne({phone});
+  
+      if (existingUser || existingMob) {
+        return res.status(400).json({ message: "User already exists" });
+      }
+  
+      const newUser = new User({
+        name,
+        email,
+        password,
+        phone,
+        deposite,
+        joiningDate,
+        room,
+        role:"resident"
+      });
+  
+      await newUser.save();
+  
+      const userData = newUser.toObject();
+      delete userData.password;
+  
+    const getRooms = await RoomDb.find({
+     hostelId: req.params.hostelId,
+    });
+
+
+const filteredRoom = getRooms.find(
+  (rm) => rm.roomNumber === room
+);
+
+console.log(filteredRoom)
+
+if (!filteredRoom) {
+  return res.status(404).json({
+    message: "Room not found",
+  });
+}
+
+filteredRoom.roomMembers.push({
+  name,
+  email,
+  bedNumber: room,
+  joinedAt:joiningDate
+});
+
+await filteredRoom.save();
+
+res.status(200).json({
+  message: "Member added successfully",
+  room: filteredRoom,
+});
+  
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: "Server Error" });
     }
 }

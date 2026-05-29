@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createRoom, getHostels, registerHostel,updateHostel,deleteHostel, getRooms, getHostelById } from "../../types/Admin/adminAPI";
+import { createRoom, getHostels, registerHostel,updateHostel,deleteHostel, getRooms, getHostelById, assignRoom } from "../../types/Admin/adminAPI";
 import toast from "react-hot-toast";
 
 
@@ -118,6 +118,24 @@ export const useGetRooms = (hostelId) => {
   });
 };
 
+
+export const useAssignedRoom = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: assignRoom,
+
+    onSuccess: (_, variables) => {
+      toast.success("room assigned successfully");
+      queryClient.invalidateQueries({ queryKey: ["room"] });
+    },
+
+    onError: (error) => {
+        console.log(error);
+      toast.error(error?.response?.data?.message  || "Something went wrong");
+    }
+  });
+};
 
 
 

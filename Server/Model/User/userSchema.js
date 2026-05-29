@@ -27,8 +27,20 @@ const userSchema = new mongoose.Schema({
 
   role: {
     type: String,
-    enum: ["superadmin", "admin", "student"],
+    enum: ["superadmin", "admin", "resident"],
     default: "student"
+  },
+
+  deposite:{
+    type: String,
+  },
+
+  room:{
+    type: String,
+  },
+
+  joiningDate:{
+    type:Date,
   },
 
  tokens: [

@@ -4,7 +4,8 @@ import {useParams} from "react-router-dom"
 import FloorSection from "../../../../components/AdminComponents/Room_Management/FloorSection/FloorSection";
 import RoomAvatarStack from "../../../../components/Reusable/RoomAvtarStack";
 import AddRoomModal from "../../../../components/Models/AddRoomModal";
-import { useCreateRoom, useGetHosetlById, useGetRooms } from "../../../../hooks/AdminHooks/adminHooks";
+import { useAssignedRoom, useCreateRoom, useGetHosetlById, useGetRooms } from "../../../../hooks/AdminHooks/adminHooks";
+import AddResidentModal from "../../../../components/Models/AddResidentModal";
 
 // const  = [
 //   { id: "1", roomNo: "101", floor: "Ground Floor", beds: 3, occupied: 3, rent: 8000, status: "occupied",  residents: ["Arjun S", "Rahul M", "Karan P"], amenities: ["AC", "WiFi"], roomType: "Triple" },
@@ -38,11 +39,13 @@ export default function RoomManagement() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [activeFloor, setActiveFloor] = useState("All");
   const [addRoomModel,setAddRoomModel] = useState(false);
+  const [addResidentModal,setAddResidentModal] = useState(false);
   const {id} = useParams();
 
   const {mutate:createRoom} = useCreateRoom();
   const {data:MOCK_ROOMS} = useGetRooms(id);
   const {data:gethostelById} = useGetHosetlById(id);
+  const {mutate:assigneroom} = useAssignedRoom();
 
   console.log("gethostelById",gethostelById)
 
@@ -68,13 +71,22 @@ export default function RoomManagement() {
 });
 
 
-  console.log(filtered)
+  filtered?.forEach((element,index)=>{
+    console.log(element.floor,activeFloor)
+  })
 
 
-  const grouped = floors
-    ?.filter(f => f !== "All")
-    ?.map(floor => ({ floor, rooms: filtered.filter(room => room.floor === floor) }))
-    ?.filter(grd => grd.rooms.length > 0);
+const grouped = floors
+  ?.filter((floor) => floor !== "All")
+  ?.map((floor) => ({
+    floor,
+    rooms: filtered?.filter(
+      (room) => String(room.floor) === String(floor)
+    ),
+  }))
+  ?.filter((grp) => grp.rooms?.length > 0);
+
+  console.log(grouped);
 
   const stats = [
     { label: "Total Rooms",  value: MOCK_ROOMS?.length,                                         icon: <Home size={16} />,    color: "text-slate-700",    iconBg: "bg-slate-100" },
@@ -82,6 +94,14 @@ export default function RoomManagement() {
     { label: "Vacant",       value: MOCK_ROOMS?.filter(r => r.status === "vacant").length,       icon: <BedDouble size={16}/>, color: "text-emerald-600", iconBg: "bg-emerald-50" },
     { label: "Maintenance",  value: MOCK_ROOMS?.filter(r => r.status === "maintenance").length,  icon: <Wrench size={16} />,  color: "text-rose-600",     iconBg: "bg-rose-50" },
   ];
+
+
+    const addResident = (resident) => {
+    console.log(resident)
+    assigneroom(resident)
+    resident.hostelId = id;
+  };
+
 
   const handleRoomSubmit = (data)=>{
 
@@ -226,24 +246,35 @@ export default function RoomManagement() {
             <p className="text-slate-400 font-medium text-sm">No rooms match your filters.</p>
           </div>
         ) : activeFloor !== "All" ? (
-          <FloorSection floor={activeFloor} rooms={filtered} />
+          <FloorSection floor={activeFloor} rooms={filtered} setAddResidentModal={setAddResidentModal}/>
         ) : (
           grouped.map(({ floor, rooms }) => (
-            <FloorSection key={floor} floor={floor} rooms={rooms} />
+            <FloorSection key={floor} floor={floor} rooms={rooms} setAddResidentModal={setAddResidentModal} />
           ))
         )}
       </div>
 
       {
-
        addRoomModel && (
          <AddRoomModal
          onClose={()=>{setAddRoomModel(false)}}
          onSubmit={handleRoomSubmit}
          Floors={floors}
          />
-        ) 
+        )
       }
+
+      {
+        addResidentModal && (
+          <AddResidentModal
+          floors={floors}
+          onClose={()=>{setAddResidentModal(false)}}
+          rooms={MOCK_ROOMS}
+          onAdd={addResident}
+          />
+        )
+      }
+      
     </div>
   );
 }

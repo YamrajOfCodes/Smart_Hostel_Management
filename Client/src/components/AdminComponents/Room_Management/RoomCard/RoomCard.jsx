@@ -16,10 +16,12 @@ const FLOOR_ACCENT = {
   "3rd Floor":    "bg-amber-500",
 };
 
-function RoomCard({ room }) {
+function RoomCard({ room,setAddResidentModal }) {
   const s = STATUS[room.status];
   const fillPct = room.totalBeds > 0 ? Math.round((room.roomMembers?.length / room.totalBeds) * 100) : 0;
   const barColor = { occupied: "bg-blue-500", partial: "bg-amber-400", vacant: "bg-emerald-400", maintenance: "bg-rose-400" }[room.status];
+
+  console.log(room)
 
   return (
     <div className="bg-white rounded-2xl border border-slate-100 p-4 flex flex-col gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
@@ -55,7 +57,7 @@ function RoomCard({ room }) {
 
       {/* Residents */}
       <div className="flex items-center justify-between">
-        <RoomAvatarStack residents={room.residents} />
+        <RoomAvatarStack residents={room.roomMembers} setAddResidentModal={setAddResidentModal} />
         <span className="text-xs font-semibold text-slate-700">₹{room?.monthlyRent?.toLocaleString()}<span className="text-slate-400 font-normal">/mo</span></span>
       </div>
 

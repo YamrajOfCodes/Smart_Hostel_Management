@@ -17,11 +17,6 @@ const roomSchema = new Schema(
       required:true
     },
 
-    roomType:{
-      type:String,
-      required:true,
-    },
-
     roomNumber: {
       type: String,
       required: true,
@@ -65,9 +60,12 @@ const roomSchema = new Schema(
 
     roomMembers: [
       {
-        tenantId: {
-          type: Schema.Types.ObjectId,
-          ref: "Tenant",
+        name: {
+          type:String,
+          required: true,
+        },
+         email: {
+          type:String,
           required: true,
         },
         joinedAt: {

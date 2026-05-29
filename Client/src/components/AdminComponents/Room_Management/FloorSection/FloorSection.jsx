@@ -8,7 +8,8 @@ const FLOOR_ACCENT = {
 };
 
 
-function FloorSection({ floor, rooms }) {
+function FloorSection({ floor, rooms,setAddResidentModal }) {
+  console.log(rooms)
   const accent = FLOOR_ACCENT[floor] || "bg-slate-500";
   return (
     <div className="mb-8">
@@ -18,7 +19,7 @@ function FloorSection({ floor, rooms }) {
         <span className="text-xs text-slate-400 font-medium bg-slate-100 px-2 py-0.5 rounded-full">{rooms.length} rooms</span>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-        {rooms.map(r => <RoomCard key={r.id} room={r} />)}
+        {rooms.map(r => <RoomCard setAddResidentModal={setAddResidentModal} key={r.id} room={r} />)}
       </div>
     </div>
   );
