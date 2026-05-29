@@ -248,3 +248,34 @@ res.status(200).json({
       res.status(500).json({ message: "Server Error" });
     }
 }
+
+
+export const unassigneRoom = async(req,res)=>{
+  try {
+    const {email} = req.body;
+    const {roomId} = req.params;
+
+    // console.log(email,roomId);
+
+    const getroom = await RoomDb.findById(roomId);
+    if(!getroom){
+      return res.status(400).json({error:"room is not found"});
+    }
+
+    // console.log(getroom)
+
+   getroom.roomMembers =  getroom.roomMembers.filter((member,element)=>{
+        if(member.email !== email){
+          return member
+        }
+    });
+    
+    await getroom.save();
+
+    return res.status(200).json({message:"room unassigned successfully"});
+
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({error:"something wen wrong while unassigning room",error})
+  }
+}

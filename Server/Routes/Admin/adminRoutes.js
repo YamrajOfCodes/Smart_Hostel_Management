@@ -1,6 +1,6 @@
 import express from "express";
 const router = express.Router();
-import {createRoom,getallRooms,getHostels,RegisterHostel,updateHostel,deleteHostel, getHostelById,assignedRoom} from "../../Controller/Admin/adminController.js";
+import {createRoom,getallRooms,getHostels,RegisterHostel,updateHostel,deleteHostel, getHostelById,assignedRoom, unassigneRoom} from "../../Controller/Admin/adminController.js";
 import adminAuthenticate from "../../Middleware/Admin/adminAuthenticate.js";
 
 router.post("/registerHostel/:ownerId",RegisterHostel)
@@ -14,6 +14,8 @@ router.delete("/deleteHostel/:hostelId",adminAuthenticate,deleteHostel)
 
 router.post("/createRoom/:hostelId",adminAuthenticate,createRoom);
 router.get("/getallrooms/:hostelId",adminAuthenticate,getallRooms);
-router.put("/assignRoom/:hostelId",adminAuthenticate,assignedRoom)
+router.put("/assignRoom/:hostelId",adminAuthenticate,assignedRoom);
+
+router.put("/unassignRoom/:roomId",adminAuthenticate,unassigneRoom);
 
 export default router;

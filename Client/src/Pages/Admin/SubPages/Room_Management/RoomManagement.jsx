@@ -4,8 +4,9 @@ import {useParams} from "react-router-dom"
 import FloorSection from "../../../../components/AdminComponents/Room_Management/FloorSection/FloorSection";
 import RoomAvatarStack from "../../../../components/Reusable/RoomAvtarStack";
 import AddRoomModal from "../../../../components/Models/AddRoomModal";
-import { useAssignedRoom, useCreateRoom, useGetHosetlById, useGetRooms } from "../../../../hooks/AdminHooks/adminHooks";
+import { useAssignedRoom, useCreateRoom, useGetHosetlById, useGetRooms, useUnAssignedRoom } from "../../../../hooks/AdminHooks/adminHooks";
 import AddResidentModal from "../../../../components/Models/AddResidentModal";
+import RoomMembersPopup from "../../../../components/Models/RoomMembersModal";
 
 // const  = [
 //   { id: "1", roomNo: "101", floor: "Ground Floor", beds: 3, occupied: 3, rent: 8000, status: "occupied",  residents: ["Arjun S", "Rahul M", "Karan P"], amenities: ["AC", "WiFi"], roomType: "Triple" },
@@ -40,16 +41,18 @@ export default function RoomManagement() {
   const [activeFloor, setActiveFloor] = useState("All");
   const [addRoomModel,setAddRoomModel] = useState(false);
   const [addResidentModal,setAddResidentModal] = useState(false);
+  const [showroomMembers,setShowRoomMembers] = useState(false);
   const {id} = useParams();
 
   const {mutate:createRoom} = useCreateRoom();
   const {data:MOCK_ROOMS} = useGetRooms(id);
   const {data:gethostelById} = useGetHosetlById(id);
   const {mutate:assigneroom} = useAssignedRoom();
+  const {mutate:unassignroom} = useUnAssignedRoom();
 
-  console.log("gethostelById",gethostelById)
+  const [getIndividualRoom,setIndividualRoom] = useState({});
 
-  console.log(activeFloor)
+  
 
 
 
@@ -95,12 +98,36 @@ const grouped = floors
     { label: "Maintenance",  value: MOCK_ROOMS?.filter(r => r.status === "maintenance").length,  icon: <Wrench size={16} />,  color: "text-rose-600",     iconBg: "bg-rose-50" },
   ];
 
+  const handleCloseRoomMembersModel = ()=>{
+    setShowRoomMembers(false);
+    setIndividualRoom({});
+  }
+
 
     const addResident = (resident) => {
     console.log(resident)
     assigneroom(resident)
     resident.hostelId = id;
   };
+
+  const handleRoomMembersPopup = ()=>{
+    setShowRoomMembers(false);
+    setAddResidentModal(true)
+  }
+
+  const handleUnassigned = (email,roomId)=>{
+    console.log(email,roomId);
+    const payload = {
+      email,
+      roomId
+    }
+    unassignroom(payload,{
+      onSuccess:()=>{
+      let data = getIndividualRoom.roomMembers.filter((element)=> element.email !== email)
+      setIndividualRoom(data);
+      }
+    })
+  }
 
 
   const handleRoomSubmit = (data)=>{
@@ -246,10 +273,10 @@ const grouped = floors
             <p className="text-slate-400 font-medium text-sm">No rooms match your filters.</p>
           </div>
         ) : activeFloor !== "All" ? (
-          <FloorSection floor={activeFloor} rooms={filtered} setAddResidentModal={setAddResidentModal}/>
+          <FloorSection floor={activeFloor} rooms={filtered} setAddResidentModal={setAddResidentModal} setShowRoomMembers={setShowRoomMembers} setIndividualRoom={setIndividualRoom}/>
         ) : (
           grouped.map(({ floor, rooms }) => (
-            <FloorSection key={floor} floor={floor} rooms={rooms} setAddResidentModal={setAddResidentModal} />
+            <FloorSection key={floor} floor={floor} rooms={rooms} setAddResidentModal={setAddResidentModal} setShowRoomMembers={setShowRoomMembers} setIndividualRoom={setIndividualRoom} />
           ))
         )}
       </div>
@@ -271,6 +298,17 @@ const grouped = floors
           onClose={()=>{setAddResidentModal(false)}}
           rooms={MOCK_ROOMS}
           onAdd={addResident}
+          />
+        )
+      }
+
+      {
+        showroomMembers && (
+          <RoomMembersPopup
+          onClose={handleCloseRoomMembersModel}
+          room={getIndividualRoom}
+          onUnassign={handleUnassigned}
+          onAddResident={handleRoomMembersPopup}
           />
         )
       }

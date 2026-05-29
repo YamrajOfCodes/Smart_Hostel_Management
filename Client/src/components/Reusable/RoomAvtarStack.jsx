@@ -1,7 +1,9 @@
 import { Plus } from "lucide-react";
 
-function RoomAvatarStack({ residents, onAdd,setAddResidentModal }) {
+function RoomAvatarStack({ residents,room, onAdd,setAddResidentModal }) {
   const palette = ["bg-blue-400", "bg-violet-400", "bg-teal-400", "bg-amber-400", "bg-rose-400"];
+
+  console.log(residents)
 
   return (
     <div className="flex items-center ">
@@ -35,13 +37,16 @@ function RoomAvatarStack({ residents, onAdd,setAddResidentModal }) {
       </div>
 
       {/* Add button */}
-      <button
+      {
+        room?.totalBeds !== residents?.length &&   <button
         onClick={(e) => { e.stopPropagation(); setAddResidentModal(true); }}
         className="w-6 h-6 rounded-full border border-dashed cursor-pointer border-slate-300 flex items-center justify-center text-slate-400 hover:border-slate-500 hover:text-slate-600 hover:bg-slate-50 transition-all"
         title="Add resident"
       >
         <Plus size={11} />
       </button>
+      }
+    
 
     </div>
   );

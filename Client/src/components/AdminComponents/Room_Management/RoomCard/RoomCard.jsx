@@ -1,5 +1,6 @@
 import { BedDouble } from "lucide-react";
 import RoomAvatarStack from "../../../Reusable/RoomAvtarStack";
+import { useEffect } from "react";
 
 
 const STATUS = {
@@ -16,16 +17,26 @@ const FLOOR_ACCENT = {
   "3rd Floor":    "bg-amber-500",
 };
 
-function RoomCard({ room,setAddResidentModal }) {
+function RoomCard({ room,setAddResidentModal,setShowRoomMembers,key,setIndividualRoom }) {
   const s = STATUS[room.status];
   const fillPct = room.totalBeds > 0 ? Math.round((room.roomMembers?.length / room.totalBeds) * 100) : 0;
   const barColor = { occupied: "bg-blue-500", partial: "bg-amber-400", vacant: "bg-emerald-400", maintenance: "bg-rose-400" }[room.status];
 
   console.log(room)
 
+
+  const handleRoom = ()=>{
+    setIndividualRoom(room);
+    setShowRoomMembers(true)
+  }
+
+
   return (
     <div className="bg-white rounded-2xl border border-slate-100 p-4 flex flex-col gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
-      style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+      style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
+      onClick={handleRoom}
+      key={key}
+      >
 
       {/* Top row */}
       <div className="flex items-start justify-between">
@@ -40,7 +51,7 @@ function RoomCard({ room,setAddResidentModal }) {
         </div>
         <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-semibold ${s.bg} ${s.text} ${s.border}`}>
           <div className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
-          {s.label}
+          {room?.totalBeds === room?.roomMembers?.length ? "Full" : s.label}
         </div>
       </div>
 
@@ -57,7 +68,7 @@ function RoomCard({ room,setAddResidentModal }) {
 
       {/* Residents */}
       <div className="flex items-center justify-between">
-        <RoomAvatarStack residents={room.roomMembers} setAddResidentModal={setAddResidentModal} />
+        <RoomAvatarStack residents={room.roomMembers} setAddResidentModal={setAddResidentModal} room={room}/>
         <span className="text-xs font-semibold text-slate-700">₹{room?.monthlyRent?.toLocaleString()}<span className="text-slate-400 font-normal">/mo</span></span>
       </div>
 

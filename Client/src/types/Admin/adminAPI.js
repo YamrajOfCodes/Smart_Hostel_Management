@@ -127,4 +127,20 @@ export const assignRoom = async (data) => {
 };
 
 
+export const unassignRoom = async (data) => {
+  const token = localStorage.getItem('login');
+  const res =  await api.put(
+    `/admin/unassignRoom/${data.roomId}`,
+    data,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return res.data;
+};
+
+
+
 
