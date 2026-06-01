@@ -17,7 +17,7 @@ const FLOOR_ACCENT = {
   "3rd Floor":    "bg-amber-500",
 };
 
-function RoomCard({ room,setAddResidentModal,setShowRoomMembers,key,setIndividualRoom }) {
+function RoomCard({ room,setAddResidentModal,setShowRoomMembers,key, setSelectedRoomId }) {
   const s = STATUS[room.status];
   const fillPct = room.totalBeds > 0 ? Math.round((room.roomMembers?.length / room.totalBeds) * 100) : 0;
   const barColor = { occupied: "bg-blue-500", partial: "bg-amber-400", vacant: "bg-emerald-400", maintenance: "bg-rose-400" }[room.status];
@@ -26,8 +26,8 @@ function RoomCard({ room,setAddResidentModal,setShowRoomMembers,key,setIndividua
 
 
   const handleRoom = ()=>{
-    setIndividualRoom(room);
-    setShowRoomMembers(true)
+   setShowRoomMembers(true);
+setSelectedRoomId(room._id);
   }
 
 

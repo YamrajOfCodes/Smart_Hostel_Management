@@ -3,6 +3,7 @@ import ResidentCard from "../../../../components/AdminComponents/ResidentSection
 import AddResidentModal from "../../../../components/Models/AddResidentModal";
 import { useAssignedRoom, useGetHosetlById, useGetRooms } from "../../../../hooks/AdminHooks/adminHooks";
 import { useParams } from "react-router-dom";
+import Table from "../../../../components/Reusable/AdminTable";
 
 // ─────────────────────────────────────────────────────
 // ICONS
@@ -109,6 +110,49 @@ const initialResidents = [
     email: "sneha@gmail.com",
     rent: 8800,
     status: "active",
+  },
+];
+
+const columns = [
+  {
+    key: "name",
+    label: "Resident Name",
+  },
+  {
+    key: "room",
+    label: "Room",
+  },
+  {
+    key: "floor",
+    label: "Floor",
+  },
+  {
+    key: "phone",
+    label: "Phone",
+  },
+  {
+    key: "email",
+    label: "Email",
+  },
+  {
+    key: "rent",
+    label: "Rent",
+    render: (row) => `₹${row.rent}`,
+  },
+  {
+    key: "status",
+    label: "Status",
+    render: (row) => (
+      <span
+        className={`px-2 py-1 rounded-full text-xs font-medium ${
+          row.status === "active"
+            ? "bg-green-100 text-green-700"
+            : "bg-yellow-100 text-yellow-700"
+        }`}
+      >
+        {row.status}
+      </span>
+    ),
   },
 ];
 
@@ -266,15 +310,23 @@ export default function ResidentsSection() {
         </div>
 
         {/* RESIDENT GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+       {/* Mobile */}
+<div className="block lg:hidden">
+  {filteredResidents.map((resident) => (
+    <ResidentCard
+      key={resident.id}
+      resident={resident}
+    />
+  ))}
+</div>
 
-          {filteredResidents.map((resident) => (
-            <ResidentCard
-              key={resident.id}
-              resident={resident}
-            />
-          ))}
-        </div>
+{/* Desktop */}
+<div className="hidden lg:block">
+  <Table
+    columns={columns}
+    data={filteredResidents}
+  />
+</div>
 
         {/* EMPTY */}
         {filteredResidents.length === 0 && (

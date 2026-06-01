@@ -1,6 +1,18 @@
 import express from "express";
 const router = express.Router();
-import {createRoom,getallRooms,getHostels,RegisterHostel,updateHostel,deleteHostel, getHostelById,assignedRoom, unassigneRoom} from "../../Controller/Admin/adminController.js";
+import {
+createRoom,
+getallRooms,
+getHostels,
+RegisterHostel,
+updateHostel,
+deleteHostel, 
+getHostelById,
+assignedRoom, 
+unassigneRoom,
+swapResidents,
+ChangeRoom
+} from "../../Controller/Admin/adminController.js";
 import adminAuthenticate from "../../Middleware/Admin/adminAuthenticate.js";
 
 router.post("/registerHostel/:ownerId",RegisterHostel)
@@ -17,5 +29,7 @@ router.get("/getallrooms/:hostelId",adminAuthenticate,getallRooms);
 router.put("/assignRoom/:hostelId",adminAuthenticate,assignedRoom);
 
 router.put("/unassignRoom/:roomId",adminAuthenticate,unassigneRoom);
+router.put("/swaprooms",adminAuthenticate,swapResidents);
+router.put("/changeroom",adminAuthenticate,ChangeRoom);
 
 export default router;

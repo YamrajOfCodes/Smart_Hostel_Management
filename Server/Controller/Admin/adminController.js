@@ -279,3 +279,94 @@ export const unassigneRoom = async(req,res)=>{
     return res.status(400).json({error:"something wen wrong while unassigning room",error})
   }
 }
+
+export const swapResidents = async(req,res)=>{
+  try {
+    const {member,targetMember,targetRoom} = req.body;
+
+    const {email,bedNumber,joinedAt,name} = member || {}; // raj 401
+    const {email:targetEmail,bedNumber:targetBedNumber,joinedAt:targetJoinedAt} = targetMember || {}; // dev 301
+    const {_id:targetRoomId} = targetRoom || {}; // 301
+
+    if(!member || !targetMember || !targetRoom) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const findRoom = await RoomDb.findOne({ roomNumber: bedNumber });
+    if(!findRoom){
+      return res.status(404).json({message:"target room not found"});
+    }
+
+    findRoom.roomMembers = findRoom.roomMembers.filter((member,index)=> member.email !== email);
+    findRoom.roomMembers.push({
+      name:targetMember.name,
+      email:targetEmail,
+      bedNumber:findRoom.roomNumber,
+      joinedAt:targetJoinedAt
+    })
+
+    const findoldRoom = await RoomDb.findOne({roomNumber:targetBedNumber});
+
+      if(!findoldRoom){
+      return res.status(404).json({message:"old room not found"});
+      }
+
+    findoldRoom.roomMembers = findoldRoom.roomMembers.filter((member,index)=> member.email !== targetEmail);
+    findoldRoom.roomMembers.push({
+      name,
+      email,
+      bedNumber:findoldRoom.roomNumber,
+      joinedAt
+    })
+
+    await findRoom.save();
+    await findoldRoom.save();
+
+    return res.status(200).json({message:"room is successfully swapped"});
+
+
+
+
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export const ChangeRoom = async(req,res)=>{
+  try {
+    const {member,targetRoom} = req.body;
+    
+    if(!member || !targetRoom){
+      return res.status(400).json({error:"target room and member both needed"})
+    }
+
+    const {name,email,joinedAt,hostelId,bedNumber} = member;
+    const {_id} = targetRoom;
+
+    const findoldRoom = await RoomDb.findOne({roomNumber:bedNumber,hostelId});
+    if(!findoldRoom){
+      return res.status(404).json({message:"old room not found"});
+    }
+
+    findoldRoom.roomMembers = findoldRoom.roomMembers.filter((member,index)=> member.email !== email);
+    await findoldRoom.save();
+
+    const getroom = await RoomDb.findById(_id);
+    if(!getroom){
+      return res.status(400).json({error:"room is not found"})
+    }
+
+    getroom.roomMembers.push({
+      name,
+      email,
+      joinedAt,
+      bedNumber:getroom.roomNumber
+    })
+
+    await getroom.save();
+    return res.status(200).json({message:"room is changed"})
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({error:"error while changing the room",error})
+  }
+}

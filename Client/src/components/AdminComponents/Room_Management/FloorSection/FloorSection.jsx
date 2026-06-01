@@ -8,7 +8,7 @@ const FLOOR_ACCENT = {
 };
 
 
-function FloorSection({ floor, rooms,setAddResidentModal,setShowRoomMembers,setIndividualRoom }) {
+function FloorSection({ floor, rooms,setAddResidentModal,setShowRoomMembers,setSelectedRoomId }) {
   console.log(rooms)
   const accent = FLOOR_ACCENT[floor] || "bg-slate-500";
   return (
@@ -19,7 +19,7 @@ function FloorSection({ floor, rooms,setAddResidentModal,setShowRoomMembers,setI
         <span className="text-xs text-slate-400 font-medium bg-slate-100 px-2 py-0.5 rounded-full">{rooms.length} rooms</span>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-        {rooms.map(r => <RoomCard setAddResidentModal={setAddResidentModal} setShowRoomMembers={setShowRoomMembers} setIndividualRoom={setIndividualRoom} key={r.id} room={r} />)}
+        {rooms.map(r => <RoomCard setAddResidentModal={setAddResidentModal} setShowRoomMembers={setShowRoomMembers} setSelectedRoomId={setSelectedRoomId} key={r.id} room={r} />)}
       </div>
     </div>
   );

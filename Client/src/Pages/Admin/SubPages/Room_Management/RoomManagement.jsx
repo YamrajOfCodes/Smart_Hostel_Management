@@ -42,15 +42,20 @@ export default function RoomManagement() {
   const [addRoomModel,setAddRoomModel] = useState(false);
   const [addResidentModal,setAddResidentModal] = useState(false);
   const [showroomMembers,setShowRoomMembers] = useState(false);
+  const [selectedRoomId, setSelectedRoomId] = useState(null);
   const {id} = useParams();
 
   const {mutate:createRoom} = useCreateRoom();
   const {data:MOCK_ROOMS} = useGetRooms(id);
+  const selectedRoom = MOCK_ROOMS?.find(
+  room => room._id === selectedRoomId
+);
   const {data:gethostelById} = useGetHosetlById(id);
   const {mutate:assigneroom} = useAssignedRoom();
   const {mutate:unassignroom} = useUnAssignedRoom();
 
-  const [getIndividualRoom,setIndividualRoom] = useState({});
+
+  
 
   
 
@@ -99,8 +104,8 @@ const grouped = floors
   ];
 
   const handleCloseRoomMembersModel = ()=>{
-    setShowRoomMembers(false);
-    setIndividualRoom({});
+ setShowRoomMembers(false);
+  setSelectedRoomId(null);
   }
 
 
@@ -121,12 +126,7 @@ const grouped = floors
       email,
       roomId
     }
-    unassignroom(payload,{
-      onSuccess:()=>{
-      let data = getIndividualRoom.roomMembers.filter((element)=> element.email !== email)
-      setIndividualRoom(data);
-      }
-    })
+    unassignroom(payload)
   }
 
 
@@ -273,10 +273,10 @@ const grouped = floors
             <p className="text-slate-400 font-medium text-sm">No rooms match your filters.</p>
           </div>
         ) : activeFloor !== "All" ? (
-          <FloorSection floor={activeFloor} rooms={filtered} setAddResidentModal={setAddResidentModal} setShowRoomMembers={setShowRoomMembers} setIndividualRoom={setIndividualRoom}/>
+          <FloorSection floor={activeFloor} rooms={filtered} setAddResidentModal={setAddResidentModal} setShowRoomMembers={setShowRoomMembers} setSelectedRoomId={setSelectedRoomId}/>
         ) : (
           grouped.map(({ floor, rooms }) => (
-            <FloorSection key={floor} floor={floor} rooms={rooms} setAddResidentModal={setAddResidentModal} setShowRoomMembers={setShowRoomMembers} setIndividualRoom={setIndividualRoom} />
+            <FloorSection key={floor} floor={floor} rooms={rooms} setAddResidentModal={setAddResidentModal} setShowRoomMembers={setShowRoomMembers} setSelectedRoomId={setSelectedRoomId} />
           ))
         )}
       </div>
@@ -304,12 +304,13 @@ const grouped = floors
 
       {
         showroomMembers && (
-          <RoomMembersPopup
-          onClose={handleCloseRoomMembersModel}
-          room={getIndividualRoom}
-          onUnassign={handleUnassigned}
-          onAddResident={handleRoomMembersPopup}
-          />
+     <RoomMembersPopup
+  allRooms={MOCK_ROOMS}
+  onClose={handleCloseRoomMembersModel}
+  room={selectedRoom}
+  onUnassign={handleUnassigned}
+  onAddResident={handleRoomMembersPopup}
+/>
         )
       }
       

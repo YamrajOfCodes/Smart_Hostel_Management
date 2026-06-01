@@ -143,4 +143,37 @@ export const unassignRoom = async (data) => {
 
 
 
+export const SwapRooms = async (data) => {
+  const token = localStorage.getItem('login');
+  const res =  await api.put(
+    `/admin/swaprooms`,
+    data,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return res.data;
+};
+
+
+export const ChangeRoom = async (data) => {
+  const token = localStorage.getItem('login');
+  const res =  await api.put(
+    `/admin/changeroom`,
+    data,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return res.data;
+};
+
+
+
+
+
 
