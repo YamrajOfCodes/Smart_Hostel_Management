@@ -1,9 +1,12 @@
 import { useState } from "react";
 import ResidentCard from "../../../../components/AdminComponents/ResidentSection/ResidentCard/ResidentCard";
 import AddResidentModal from "../../../../components/Models/AddResidentModal";
-import { useAssignedRoom, useGetHosetlById, useGetRooms } from "../../../../hooks/AdminHooks/adminHooks";
+import { useAssignedRoom, useGetHosetlById, useGetResidents, useGetRooms } from "../../../../hooks/AdminHooks/adminHooks";
 import { useParams } from "react-router-dom";
 import Table from "../../../../components/Reusable/AdminTable";
+import DepositForm from "../../../../components/Models/DepositeForm";
+import { useDeleteResident, useUpdateResident } from "../../../../hooks/AdminHooks/ResidentsHooks";
+import DeleteModal from "../../../../components/Models/DeleteModal";
 
 // ─────────────────────────────────────────────────────
 // ICONS
@@ -123,10 +126,6 @@ const columns = [
     label: "Room",
   },
   {
-    key: "floor",
-    label: "Floor",
-  },
-  {
     key: "phone",
     label: "Phone",
   },
@@ -135,31 +134,20 @@ const columns = [
     label: "Email",
   },
   {
-    key: "rent",
-    label: "Rent",
-    render: (row) => `₹${row.rent}`,
+    key: "deposite",
+    label: "Deposit",
+    render: (row) => `₹${Number(row.deposite).toLocaleString()}`
   },
   {
-    key: "status",
-    label: "Status",
-    render: (row) => (
-      <span
-        className={`px-2 py-1 rounded-full text-xs font-medium ${
-          row.status === "active"
-            ? "bg-green-100 text-green-700"
-            : "bg-yellow-100 text-yellow-700"
-        }`}
-      >
-        {row.status}
-      </span>
-    ),
+    key: "joiningDate",
+    label: "Joining Date",
+    render: (row) =>
+      new Date(row.joiningDate).toLocaleDateString("en-IN"),
   },
 ];
 
 // ─────────────────────────────────────────────────────
 // HELPERS
-
-
 
 
 // MAIN PAGE
@@ -169,14 +157,32 @@ export default function ResidentsSection() {
     useState(initialResidents);
 
   const [search, setSearch] = useState("");
+  const [deleting, setDeleting] = useState(null);
+  const [updateResident, setUpdateResident] = useState(null);
 
-   const {id} = useParams();
-  const {data:gethostelById} = useGetHosetlById(id);
-   const {data:rooms} = useGetRooms(id);
-   const {mutate:assigneroom} = useAssignedRoom();
+  const [updateModal, setupdateModal] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false);
+
+  const { id } = useParams();
+  const { data: gethostelById } = useGetHosetlById(id);
+  const { data: rooms } = useGetRooms(id);
+  const { mutate: assigneroom } = useAssignedRoom();
+  const { data: residentData } = useGetResidents(id);
+  const { mutate: updateResidentMutation } = useUpdateResident();
+  const { mutate: deleteResidentMutation } = useDeleteResident();
+
+  const col = residentData?.map((element, index) => {
+    let data = Object.entries(element);
+    let obj = {};
+    data.forEach(([key, value]) => {
+      obj[key] = value;
+    })
+  })
+
+  console.log(col);
 
 
- const floors =  Array.from({length:gethostelById?.hostelFloors}).map((element,index)=> index+1);
+  const floors = Array.from({ length: gethostelById?.hostelFloors }).map((element, index) => index + 1);
 
 
   console.log(gethostelById)
@@ -193,6 +199,36 @@ export default function ResidentsSection() {
     resident.hostelId = id;
     setResidents((prev) => [resident, ...prev]);
   };
+
+
+
+  const handleEdit = (resident) => {
+    setupdateModal(true);
+    setUpdateResident(resident);
+  }
+
+  const handleEditSubmit = (resident) => {
+    updateResidentMutation(resident,{
+      onSuccess:()=>{     
+           setupdateModal(false);}
+    });
+  }
+
+  const handleDelete = (resident) => {
+    resident.hostelId = id
+    setDeleting(resident);
+    console.log("Delete", resident);
+    setDeleteModal(true);
+  }
+
+  const handleDeleteConfirm = () => {
+    deleteResidentMutation(deleting, {
+      onSuccess: () => {
+        setDeleteModal(false);
+      }
+    });
+  };
+
 
   return (
     <>
@@ -310,23 +346,28 @@ export default function ResidentsSection() {
         </div>
 
         {/* RESIDENT GRID */}
-       {/* Mobile */}
-<div className="block lg:hidden">
-  {filteredResidents.map((resident) => (
-    <ResidentCard
-      key={resident.id}
-      resident={resident}
-    />
-  ))}
-</div>
+        {/* Mobile */}
+        <div className="block lg:hidden">
+          {filteredResidents.map((resident) => (
+            <ResidentCard
+              key={resident.id}
+              resident={resident}
+            />
+          ))}
+        </div>
 
-{/* Desktop */}
-<div className="hidden lg:block">
-  <Table
-    columns={columns}
-    data={filteredResidents}
-  />
-</div>
+        {/* Desktop */}
+        <div className="hidden lg:block">
+          <Table
+            columns={columns}
+            data={residentData || []}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            setUpdateResidentModal={setupdateModal}
+          />
+        </div>
+
+        
 
         {/* EMPTY */}
         {filteredResidents.length === 0 && (
@@ -338,6 +379,18 @@ export default function ResidentsSection() {
         )}
       </div>
 
+
+        { updateModal && (
+              <DepositForm
+                resident={updateResident}
+                setupdateModal={setupdateModal}
+                onSubmit={handleEditSubmit}
+                onClose={()=>{setupdateModal(false)}}
+              />
+            )
+          }
+
+
       {/* MODAL */}
       {showModal && (
         <AddResidentModal
@@ -347,6 +400,20 @@ export default function ResidentsSection() {
           rooms={rooms}
         />
       )}
+
+      {
+        deleteModal && (
+          <DeleteModal
+          title={"Want to Delete Resident?"}
+          description={"do you want to delete this resident? This action cannot be undone."}
+          isOpen={deleteModal}
+          onClose={() => setDeleteModal(false)}
+          onConfirm={handleDeleteConfirm}
+          />
+        )
+      }
+
+
     </>
   );
 }

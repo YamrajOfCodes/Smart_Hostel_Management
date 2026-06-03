@@ -31,6 +31,10 @@ const userSchema = new mongoose.Schema({
     default: "student"
   },
 
+  hostelId:{
+    type:String
+  },
+
   deposite:{
     type: String,
   },

@@ -6,6 +6,7 @@ import ResidentsSection from "./SubPages/Residents/Residents";
 import { useLogout } from "../../hooks/authHooks/authHooks";
 import { protectRoute } from "../../utils/ProtectedRoutes/ProtectedRoutes";
 import { useNavigate } from "react-router-dom";
+import RentPayments from "./SubPages/Payment/RentPayments";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 // data
@@ -632,12 +633,13 @@ export default function AdminDashboard() {
           </main>
             </>
           : activeNav === "rooms" ? <><RoomManagement /></> : 
-          activeNav === "users" ? <><ResidentsSection /></> : null
+          activeNav === "users" ? <><ResidentsSection /></> : 
+          activeNav === "rent" ? <RentPayments/> : null
 
         }
         </div>
       </div>
-
+        
       {/* ── MODALS ── */}
       {showNoticeModal && <NoticeModal onClose={() => setShowNoticeModal(false)} onAdd={addNotice} />}
       {showUserModal && <AddUserModal onClose={() => setShowUserModal(false)} />}

@@ -111,8 +111,9 @@ const grouped = floors
 
     const addResident = (resident) => {
     console.log(resident)
-    assigneroom(resident)
     resident.hostelId = id;
+    console.log(resident)
+    assigneroom(resident)
   };
 
   const handleRoomMembersPopup = ()=>{

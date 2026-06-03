@@ -175,5 +175,19 @@ export const ChangeRoom = async (data) => {
 
 
 
+// Residents
 
+
+export const getResidents = async (hostelId) => {
+  const token = localStorage.getItem('login');
+  const res =  await api.get(
+    `/admin/getResidents/${hostelId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return res.data;
+};
 

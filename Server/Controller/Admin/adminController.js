@@ -183,7 +183,7 @@ export const getallRooms = async(req,res)=>{
 
 export const assignedRoom = async(req,res)=>{
     try {
-      const { name, email, password, phone,role,joiningDate,deposite,room} = req.body;
+      const { name, email, password, phone,role,joiningDate,deposite,room,hostelId} = req.body;
   
       if (!name || !email || !password || !phone ) {
         return res.status(400).json({ message: "All required fields must be filled" });
@@ -204,6 +204,7 @@ export const assignedRoom = async(req,res)=>{
         deposite,
         joiningDate,
         room,
+        hostelId,
         role:"resident"
       });
   
@@ -368,5 +369,66 @@ export const ChangeRoom = async(req,res)=>{
   } catch (error) {
     console.log(error);
     return res.status(400).json({error:"error while changing the room",error})
+  }
+}
+
+
+export const getResidents = async(req,res)=>{
+  try {
+    const {hostelId} = req.params;
+    const getallResidents = await User.find({hostelId,role:"resident"});
+    return res.status(200).json({message:"residents fetched successfully",data:getallResidents});
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({error:"error while fetching residents",error})
+  }
+}
+
+export const getResidentById = async(req,res)=>{
+  try {
+    const {residentId} = req.params;  
+    const getResident = await User.findById(residentId);
+    if(!getResident){
+      return res.status(404).json({message:"resident not found"});
+    }
+    return res.status(200).json({message:"resident fetched successfully",data:getResident});
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({error:"error while fetching resident",error})
+  }
+}
+
+export const updateResident = async(req,res)=>{
+  try {
+    const {email,hostelId} = req.body;
+    const updatedResident = await User.findOneAndUpdate({email,hostelId},req.body,{
+      new:true,
+      runValidators:true
+    })
+    return res.status(200).json({message:"resident updated successfully",data:updatedResident});
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({error:"error while updating resident",error})
+  }
+}
+
+export const deleteResident = async(req,res)=>{
+  try {
+    const {email,hostelId} = req.body;
+    const getResident = await User.findOne({email,hostelId});
+    if(!getResident){
+      return res.status(404).json({message:"resident not found"});
+    }
+
+    const assignedRoom = await RoomDb.findOne({hostelId,roomMembers:{$elemMatch:{email}}});
+
+    if(assignedRoom){
+      return res.status(400).json({message:"Resident is assigned to a room, Unassign the room first"})
+    }
+
+    return res.status(200).json({message:"resident deleted successfully"});
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({error:"error while deleting resident",error})
   }
 }

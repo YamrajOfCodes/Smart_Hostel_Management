@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createRoom, getHostels, registerHostel,updateHostel,deleteHostel, getRooms, getHostelById, assignRoom, unassignRoom, SwapRooms, ChangeRoom } from "../../types/Admin/adminAPI";
+import { createRoom, getHostels, registerHostel,updateHostel,deleteHostel, getRooms, getHostelById, assignRoom, unassignRoom, SwapRooms, ChangeRoom, getResidents } from "../../types/Admin/adminAPI";
 import toast from "react-hot-toast";
 
 
@@ -197,6 +197,14 @@ export const useChangeRoom = () => {
   });
 };
 
+
+export const useGetResidents = (hostelId) => {
+  return useQuery({
+    queryKey: ["RESIDENTS", hostelId],
+    queryFn: () => getResidents(hostelId).then((res) => res.data),
+    enabled: !!hostelId,           
+  });
+};
 
 
 
