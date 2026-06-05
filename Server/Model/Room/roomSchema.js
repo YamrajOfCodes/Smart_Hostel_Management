@@ -72,6 +72,10 @@ const roomSchema = new Schema(
           type: Date,
           default: Date.now,
         },
+        dueCount:{
+          type: Number,
+          default: 0,
+        },
         bedNumber: {
           type: Number,
         },

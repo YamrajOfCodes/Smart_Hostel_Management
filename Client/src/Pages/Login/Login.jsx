@@ -36,6 +36,8 @@ export default function HostelLogin() {
     const decodeToken = jwtDecode(token);
     if(decodeToken.role == "admin"){
       navigate("/admin");
+    }else if(decodeToken.role == "resident"){
+      navigate("/resident");
     }
   },[])
 
@@ -45,7 +47,7 @@ export default function HostelLogin() {
       email,
       password
     };
-    console.log(data);
+    // console.log(data);
     setLoading(true);
     setTimeout(() => setLoading(false), 2000);
     Login(data);

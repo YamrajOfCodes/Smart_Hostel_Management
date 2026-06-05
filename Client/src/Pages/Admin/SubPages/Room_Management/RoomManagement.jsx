@@ -80,7 +80,7 @@ export default function RoomManagement() {
 
 
   filtered?.forEach((element,index)=>{
-    console.log(element.floor,activeFloor)
+    // console.log(element.floor,activeFloor)
   })
 
 
@@ -94,7 +94,7 @@ const grouped = floors
   }))
   ?.filter((grp) => grp.rooms?.length > 0);
 
-  console.log(grouped);
+  // console.log(grouped);
 
   const stats = [
     { label: "Total Rooms",  value: MOCK_ROOMS?.length,                                         icon: <Home size={16} />,    color: "text-slate-700",    iconBg: "bg-slate-100" },
@@ -112,7 +112,7 @@ const grouped = floors
     const addResident = (resident) => {
     console.log(resident)
     resident.hostelId = id;
-    console.log(resident)
+    // console.log(resident)
     assigneroom(resident)
   };
 
@@ -132,6 +132,8 @@ const grouped = floors
 
 
   const handleRoomSubmit = (data)=>{
+
+    console.log(data);
 
     const {
         floor,
@@ -162,11 +164,11 @@ const grouped = floors
         notes
      }
 
-     createRoom(payload,{
-      onSuccess:()=>{
-        setAddRoomModel(false);
-      }
-     });
+    //  createRoom(payload,{
+    //   onSuccess:()=>{
+    //     setAddRoomModel(false);
+    //   }
+    //  });
   }
 
   return (

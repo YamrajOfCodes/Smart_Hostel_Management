@@ -104,8 +104,8 @@ export default function HostelOverview() {
 
   const handleHostel = (data)=>{
     data.ownerId = decodeToken._id;
-    console.log(editId);
-    console.log(data)
+    // console.log(editId);
+    // console.log(data)
     editId !== null ? updatehostel({data,editId},{
       onSuccess:()=>{
         setEditId(null);

@@ -14,6 +14,11 @@ import HostelOverview from "./Pages/Admin/HostelOverview/HostelOverview";
 
 // Resident
 import ResidentDashboard from "./Pages/Resident/Residentdashboard";
+import Dashboard from "./Pages/Admin/SubPages/Dashboard/Dashboard";
+import RoomManagement from "./Pages/Admin/SubPages/Room_Management/RoomManagement";
+import ResidentsSection from "./Pages/Admin/SubPages/Residents/Residents";
+import RentRecords from "./Pages/Admin/SubPages/Payment/RentPayments";
+import HostelNotices from "./Pages/Admin/SubPages/Notice/HostelNotices";
 
 const App = () => {
   return (
@@ -27,13 +32,20 @@ const App = () => {
       {/* Admin Routes */}
       <Route path="/admin" element={<HostelOverview />}/>
         
-       <Route path="admin/hostels/:id" element={<AdminDashboard />} />
-     
+      <Route path="admin/hostels/:id" element={<AdminDashboard />}>
+        <Route index element={<Dashboard />} />
+        <Route path="rooms" element={<RoomManagement />} />
+        <Route path="residents" element={<ResidentsSection />} />
+        <Route path="rent" element={<RentRecords />} />
+        <Route path="complaints" element={<div>Complaints</div>} />
+        <Route path="notices" element={<HostelNotices/>} />
+      </Route>
 
 
 
-      {/* Student Routes */}
-      <Route path="/student" element={<ResidentDashboard />} />
+
+      {/* Resident Routes */}
+      <Route path="/resident" element={<ResidentDashboard />} />
       
 
       {/* Super Admin Routes */}

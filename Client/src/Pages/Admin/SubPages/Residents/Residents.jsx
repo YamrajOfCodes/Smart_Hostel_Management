@@ -179,13 +179,13 @@ export default function ResidentsSection() {
     })
   })
 
-  console.log(col);
+  // console.log(col);
 
 
   const floors = Array.from({ length: gethostelById?.hostelFloors }).map((element, index) => index + 1);
 
 
-  console.log(gethostelById)
+  // console.log(gethostelById)
 
   const [showModal, setShowModal] = useState(false);
 
@@ -195,7 +195,7 @@ export default function ResidentsSection() {
 
   const addResident = (resident) => {
     console.log(resident)
-    assigneroom(resident)
+    // assigneroom(resident)
     resident.hostelId = id;
     setResidents((prev) => [resident, ...prev]);
   };
@@ -217,7 +217,7 @@ export default function ResidentsSection() {
   const handleDelete = (resident) => {
     resident.hostelId = id
     setDeleting(resident);
-    console.log("Delete", resident);
+    // console.log("Delete", resident);
     setDeleteModal(true);
   }
 

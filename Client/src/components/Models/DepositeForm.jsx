@@ -25,7 +25,7 @@ function initials(name) {
 export default function DepositForm({ onSubmit, onClose, resident }) {
   const today = new Date().toISOString().split("T")[0];
 
-  console.log(resident);
+  // console.log(resident);
 
   const [form, setForm] = useState({
     name: resident.name ?? "",

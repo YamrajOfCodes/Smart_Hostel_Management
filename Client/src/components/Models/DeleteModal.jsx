@@ -1,6 +1,6 @@
 import { Trash2, X, TriangleAlert } from "lucide-react";
 
-function DeleteModal({ isOpen, onClose, onConfirm, title, description, itemName }) {
+function DeleteModal({ isOpen, onClose, onConfirm, title, description, itemName,decc }) {
   if (!isOpen) return null;
 
 
@@ -48,7 +48,7 @@ function DeleteModal({ isOpen, onClose, onConfirm, title, description, itemName 
           <div className="mt-5 flex items-start gap-2.5 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
             <Trash2 size={14} className="text-red-400 mt-0.5 shrink-0" />
             <p className="text-xs text-red-600 leading-relaxed">
-              This action <span className="font-semibold">cannot be undone</span>. All tenant assignments, room data, and complaint history will be permanently erased.
+              This action <span className="font-semibold">cannot be undone</span>. {decc || "Please make sure you have a backup if needed."}
             </p>
           </div>
 

@@ -40,8 +40,8 @@ export const useLogin = () => {
 
       if (decoded.role === "admin") {
         navigate("/admin");
-      } else if (decoded.role === "student") {
-        navigate("/student");
+      } else if (decoded.role === "resident") {
+        navigate("/resident");
       } else if (decoded.role === "superadmin") {
         navigate("/superadmin");
       } else {

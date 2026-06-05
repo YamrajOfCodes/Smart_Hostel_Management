@@ -5,7 +5,7 @@ const AVATAR_PALETTE = [
 ];
 function MemberRow({ member, index, onUnassign,roomId }) {
 
-    console.log(member)
+    // console.log(member)
   const tenant  = member?.email;
   const color   = AVATAR_PALETTE[index % AVATAR_PALETTE.length];
   const initial = member?.name?.[0]?.toUpperCase() || "?";

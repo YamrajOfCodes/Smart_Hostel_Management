@@ -22,7 +22,7 @@ function RoomCard({ room,setAddResidentModal,setShowRoomMembers,key, setSelected
   const fillPct = room.totalBeds > 0 ? Math.round((room.roomMembers?.length / room.totalBeds) * 100) : 0;
   const barColor = { occupied: "bg-blue-500", partial: "bg-amber-400", vacant: "bg-emerald-400", maintenance: "bg-rose-400" }[room.status];
 
-  console.log(room)
+  // console.log(room)
 
 
   const handleRoom = ()=>{

@@ -426,6 +426,9 @@ export const deleteResident = async(req,res)=>{
       return res.status(400).json({message:"Resident is assigned to a room, Unassign the room first"})
     }
 
+    const removeResident = await User.findOneAndDelete({email,hostelId});
+
+
     return res.status(200).json({message:"resident deleted successfully"});
   } catch (error) {
     console.log(error);

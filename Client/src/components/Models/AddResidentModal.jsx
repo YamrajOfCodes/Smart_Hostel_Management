@@ -177,10 +177,8 @@ function AddResidentModal({ onClose, onAdd, floors = [], rooms = [] }) {
                           ? "No rooms available"
                           : "Select room"}
                     </option>
-                    {availableRooms.map(r => (
-                      <option key={r.id} value={r.roomNumber}>
-                        Room {r.roomNumber} · {r.occupied}/{r.totalBeds} beds
-                      </option>
+                    {availableRooms.map(room => (
+                     room.occupied < room.totalBeds && <option key={room.id} value={room.id}>Room {room.roomNumber} ({room.occupied}/{room.totalBeds} occupied)</option>
                     ))}
                   </select>
                 </div>

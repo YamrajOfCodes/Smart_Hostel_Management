@@ -52,7 +52,7 @@ export default function AddHostelModal({
   }, [editText, reset]);
 
   const data = (data)=>{
-    console.log(data)
+    // console.log(data)
      onSubmit(data)
   }
 

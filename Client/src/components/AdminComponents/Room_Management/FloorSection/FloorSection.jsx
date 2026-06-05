@@ -9,7 +9,7 @@ const FLOOR_ACCENT = {
 
 
 function FloorSection({ floor, rooms,setAddResidentModal,setShowRoomMembers,setSelectedRoomId }) {
-  console.log(rooms)
+  // console.log(rooms)
   const accent = FLOOR_ACCENT[floor] || "bg-slate-500";
   return (
     <div className="mb-8">

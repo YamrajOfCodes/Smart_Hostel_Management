@@ -15,8 +15,9 @@ ChangeRoom,
 getResidents,
 getResidentById,
 updateResident,
-deleteResident
+deleteResident,
 } from "../../Controller/Admin/adminController.js";
+import { createNotice, getNotices, updateNotice, deleteNotice } from "../../Controller/Admin/adminNoticeContoller.js";
 import adminAuthenticate from "../../Middleware/Admin/adminAuthenticate.js";
 
 router.post("/registerHostel/:ownerId",RegisterHostel)
@@ -43,5 +44,12 @@ router.get("/getHostelById/:hostelId",getHostelById)
 router.get("/getResidentById/:residentId",adminAuthenticate,getResidentById)
 router.put("/updateResident",adminAuthenticate,updateResident)
 router.delete("/deleteResident",adminAuthenticate,deleteResident)
+
+
+
+router.post("/createnotice/:hostelId",adminAuthenticate,createNotice);
+router.get("/getnotices/:hostelId",adminAuthenticate,getNotices);
+router.put("/updatenotice/:noticeId",adminAuthenticate,updateNotice);
+router.delete("/deletenotice/:noticeId",adminAuthenticate,deleteNotice);
 
 export default router;

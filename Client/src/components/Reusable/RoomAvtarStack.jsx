@@ -3,7 +3,7 @@ import { Plus } from "lucide-react";
 function RoomAvatarStack({ residents,room, onAdd,setAddResidentModal }) {
   const palette = ["bg-blue-400", "bg-violet-400", "bg-teal-400", "bg-amber-400", "bg-rose-400"];
 
-  console.log(residents)
+  // console.log(residents)
 
   return (
     <div className="flex items-center ">
