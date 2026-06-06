@@ -73,15 +73,15 @@ userSchema.pre("save", async function () {
 
 userSchema.methods.generateToken = async function () {
   try {
-    const token = jwt.sign(
-      {
-        _id: this._id,
-        role: this.role,
-      },
-      USER_SECRET,
-      { expiresIn: "1d" }
-    );
-
+  const token = jwt.sign(
+  {
+    _id: this._id,
+    role: this.role,
+    ...(this.role === "resident" && { hostelId: this.hostelId }),
+  },
+  USER_SECRET,
+  { expiresIn: "1d" }
+);
     this.tokens = this.tokens.concat({ token });
     await this.save();
 

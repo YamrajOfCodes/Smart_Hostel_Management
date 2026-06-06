@@ -16,6 +16,7 @@ getResidents,
 getResidentById,
 updateResident,
 deleteResident,
+updateComplaintStatus
 } from "../../Controller/Admin/adminController.js";
 import { createNotice, getNotices, updateNotice, deleteNotice } from "../../Controller/Admin/adminNoticeContoller.js";
 import adminAuthenticate from "../../Middleware/Admin/adminAuthenticate.js";
@@ -48,8 +49,12 @@ router.delete("/deleteResident",adminAuthenticate,deleteResident)
 
 
 router.post("/createnotice/:hostelId",adminAuthenticate,createNotice);
-router.get("/getnotices/:hostelId",adminAuthenticate,getNotices);
+router.get("/getnotices/:hostelId",getNotices);
 router.put("/updatenotice/:noticeId",adminAuthenticate,updateNotice);
 router.delete("/deletenotice/:noticeId",adminAuthenticate,deleteNotice);
+
+// complaint router
+
+router.put("/updatecomplaint/:complaintId",adminAuthenticate,updateComplaintStatus);
 
 export default router;

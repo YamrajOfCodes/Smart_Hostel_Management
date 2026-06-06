@@ -1,6 +1,14 @@
 import mongoose from "mongoose";
 
 const complaintSchema = new mongoose.Schema({
+      hostelId:{
+        type:String,
+        required:true
+    },
+    userId:{
+     type:mongoose.Schema.Types.ObjectId,
+     ref:"User"
+    },
     category:{
         type:String,
         required:true
@@ -16,6 +24,10 @@ const complaintSchema = new mongoose.Schema({
     priority:{
         type:String,
         required:true
+    },
+    status:{
+      type:String,
+      required:true
     }
 });
 

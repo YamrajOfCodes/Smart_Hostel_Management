@@ -1,13 +1,15 @@
 import express from "express";
 const router  = express.Router();
-import {raiseComplaint,getAllComplaints, requestService, getAllRequestedServices} from "../../Controller/User/userController.js"
+import {raiseComplaint,getallComplaints,deleteComplaint} from "../../Controller/User/userComplaintController.js"
+import userAuthenticate from "../../Middleware/Resident/adminAuthenticate.js"
+
+router.post("/raisecomplaint/:hostelId",userAuthenticate,raiseComplaint);
+router.get("/getallcomplaints/:hostelId",getallComplaints);
+router.delete("/deletecomplaint/:complaintId",userAuthenticate,deleteComplaint);
 
 
-router.post("/raise-complaint",raiseComplaint);
-router.get("/getallcomplaints",getAllComplaints);
 
-router.post("/request-service",requestService);
-router.get("/getallservices",getAllRequestedServices);
+
 
 
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import ComplaintModal from "../../components/ResidentComponents/ComplaintModal/ComplaintModal";
 import ServiceModal from "../../components/ResidentComponents/ServiceModal/ServiceModal";
 import NoticePeriodModal from "../../components/ResidentComponents/NoticePeriodModal/NoticePeriodModal";
+import { Outlet, useNavigate } from "react-router-dom";
 
 /* ─── Icon ────────────────────────────────────────────────────────────────── */
 const Ic = ({ d, size = 18, sw = 2, fill = "none", stroke = "currentColor" }) => (
@@ -79,12 +80,12 @@ const SERVICES = [
 ];
 
 const NAV = [
-  { id:"home",          label:"Home",          icon:"home"   },
-  { id:"notices",       label:"Notices",       icon:"bell",  badge:true },
-  { id:"complaints",    label:"Complaints",    icon:"warn"   },
-  { id:"services",      label:"Services",      icon:"wrench" },
-  { id:"invoices",      label:"Invoices",      icon:"file"   },
-  { id:"notice-period", label:"Notice Period", icon:"shield" },
+  { id:"home",          label:"Home",          icon:"home" ,path:"/resident" },
+  { id:"notices",       label:"Notices",       icon:"bell",  badge:true, path:"/resident/notices" },
+  { id:"complaints",    label:"Complaints",    icon:"warn",  path:"/resident/complaints" },
+  { id:"services",      label:"Services",      icon:"wrench", path:"/resident/services" },
+  { id:"invoices",      label:"Invoices",      icon:"file",  path:"/resident/invoices" },
+  { id:"notice-period", label:"Notice Period", icon:"shield", path:"/resident/notice-period" },
 ];
 
 /* ─── Status badge styles ─────────────────────────────────────────────────── */
@@ -121,6 +122,8 @@ const CardHead = ({ title, right }) => (
 
 /* ─── Sidebar ─────────────────────────────────────────────────────────────── */
 function Sidebar({ nav, setNav, unread, onClose }) {
+
+  const navigate = useNavigate();
   return (
     <div className="flex flex-col h-full bg-[#0f4c75] text-white">
 
@@ -169,7 +172,7 @@ function Sidebar({ nav, setNav, unread, onClose }) {
           return (
             <button
               key={item.id}
-              onClick={() => { setNav(item.id); onClose(); }}
+              onClick={() => { setNav(item.id);navigate(item.path); onClose(); }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-left transition-all border-none cursor-pointer ${
                 active
                   ? "bg-white text-[#0f4c75] shadow-md"
@@ -200,125 +203,7 @@ function Sidebar({ nav, setNav, unread, onClose }) {
 }
 
 /* ─── PAGE: Home ──────────────────────────────────────────────────────────── */
-function PageHome({ goNav, setModal, complaints, notices, unread, markRead }) {
-  const QuickCard = ({ icon, label, sub, onClick, gradFrom, gradTo }) => (
-    <button
-      onClick={onClick}
-      className={`flex-1 min-w-[140px] relative overflow-hidden rounded-2xl p-4 text-left border-none cursor-pointer bg-gradient-to-br ${gradFrom} ${gradTo} hover:-translate-y-0.5 transition-transform`}
-    >
-      <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center mb-3">
-        <Ic d={IC[icon]} size={19} stroke="white" />
-      </div>
-      <p className="font-bold text-sm text-white">{label}</p>
-      <p className="text-[11px] text-white/70 mt-1">{sub}</p>
-      <div className="absolute -right-3 -bottom-3 w-14 h-14 rounded-full bg-white/10" />
-    </button>
-  );
 
-  return (
-    <div className="space-y-4">
-      {/* Hero */}
-      <div className="rounded-2xl p-6 text-white relative overflow-hidden bg-gradient-to-br from-[#0f4c75] via-[#1b6ca8] to-[#118ab2]">
-        <div className="absolute -right-5 -top-5 w-28 h-28 rounded-full bg-white/10" />
-        <div className="absolute right-5 bottom-[-8px] w-14 h-14 rounded-full bg-white/10" />
-        <div className="relative z-10">
-          <p className="text-sm text-white/70 font-medium mb-1">Good morning 👋</p>
-          <h2 className="font-display text-2xl font-bold text-white mb-3">{RESIDENT.name}</h2>
-          <div className="flex flex-wrap gap-2">
-            <span className="bg-white/15 rounded-xl px-3 py-1.5 text-xs font-semibold">🏠 {RESIDENT.room}</span>
-            <span className="bg-white/15 rounded-xl px-3 py-1.5 text-xs font-semibold">{RESIDENT.floor}</span>
-            <span className="bg-white/15 rounded-xl px-3 py-1.5 text-xs font-semibold">📅 Since {RESIDENT.joined}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Rent card */}
-      <Card>
-        <div className="p-5">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Next Rent Due</p>
-              <p className="font-display text-3xl font-bold text-slate-800">₹{RESIDENT.rent.toLocaleString("en-IN")}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-slate-400 mb-1">Due by</p>
-              <p className="text-sm font-bold text-red-500">{RESIDENT.due}</p>
-            </div>
-          </div>
-          <div className="h-2 bg-slate-100 rounded-full overflow-hidden mb-3">
-            <div className="h-full w-[72%] bg-gradient-to-r from-teal-400 to-teal-600 rounded-full" />
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400">Billing cycle: Monthly</span>
-            <button onClick={() => goNav("invoices")} className="text-xs text-teal-600 font-bold bg-transparent border-none cursor-pointer hover:underline">
-              View Invoices →
-            </button>
-          </div>
-        </div>
-      </Card>
-
-      {/* Quick actions */}
-      <div>
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Quick Actions</p>
-        <div className="flex flex-wrap gap-3">
-          <QuickCard icon="warn"   label="Raise Complaint" sub="Report an issue"    onClick={() => setModal("complaint")}     gradFrom="from-red-500"    gradTo="to-red-600" />
-          <QuickCard icon="wrench" label="Request Service" sub="Maintenance & more" onClick={() => setModal("service")}       gradFrom="from-sky-500"    gradTo="to-sky-600" />
-          <QuickCard icon="file"   label="My Invoices"     sub="Download receipts"  onClick={() => goNav("invoices")}          gradFrom="from-violet-500" gradTo="to-violet-600" />
-          <QuickCard icon="shield" label="Notice Period"   sub="Plan your exit"     onClick={() => setModal("notice-period")}  gradFrom="from-amber-400"  gradTo="to-amber-500" />
-        </div>
-      </div>
-
-      {/* Latest notices */}
-      <Card>
-        <CardHead title="Latest Notices" right={
-          <button onClick={() => goNav("notices")} className="text-xs text-teal-600 font-bold bg-transparent border-none cursor-pointer hover:underline">View all →</button>
-        } />
-        <div className="divide-y divide-slate-50">
-          {notices.slice(0, 3).map(n => (
-            <button
-              key={n.id}
-              onClick={() => { markRead(n.id); goNav("notices"); }}
-              className="w-full flex items-start gap-3 px-5 py-3.5 hover:bg-slate-50 transition-colors text-left bg-transparent border-none cursor-pointer"
-            >
-              <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${n.unread ? "bg-teal-500" : "bg-slate-200"}`} />
-              <div className="flex-1 min-w-0">
-                <p className={`text-sm font-semibold truncate ${n.unread ? "text-slate-800" : "text-slate-500"}`}>{n.title}</p>
-                <p className="text-xs text-slate-400 mt-0.5 truncate">{n.body}</p>
-              </div>
-              <span className="text-[10px] text-slate-400 shrink-0 mt-0.5">{n.date}</span>
-            </button>
-          ))}
-        </div>
-      </Card>
-
-      {/* Complaints preview */}
-      <Card>
-        <CardHead title="My Complaints" right={
-          <button
-            onClick={() => setModal("complaint")}
-            className="flex items-center gap-1.5 text-xs font-bold text-teal-700 bg-teal-50 border border-teal-200 px-3 py-1.5 rounded-lg hover:bg-teal-100 transition-colors cursor-pointer"
-          >
-            <Ic d={IC.plus} size={12} /> New
-          </button>
-        } />
-        <div className="divide-y divide-slate-50">
-          {complaints.slice(0, 2).map(c => (
-            <div key={c.id} className="flex items-center gap-3 px-5 py-3.5">
-              <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
-                <Ic d={IC.warn} size={16} stroke="#94a3b8" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-800 truncate">{c.title}</p>
-                <p className="text-xs text-slate-400 mt-0.5">{c.cat} · {c.date}</p>
-              </div>
-              <Badge s={c.status} />
-            </div>
-          ))}
-        </div>
-      </Card>
-    </div>
-  );
-}
 
 /* ─── PAGE: Notices ───────────────────────────────────────────────────────── */
 function PageNotices({ notices, markRead }) {
@@ -613,6 +498,7 @@ export default function ResidentDashboard() {
   const [mounted,     setMounted]     = useState(false);
 
   useEffect(() => { setTimeout(() => setMounted(true), 60); }, []);
+  const navigate = useNavigate();
 
   const unread  = notices.filter(n => n.unread).length;
   const markRead = id => setNotices(n => n.map(x => x.id === id ? { ...x, unread: false } : x));
@@ -620,14 +506,14 @@ export default function ResidentDashboard() {
 
   const pageProps = { goNav, setModal, complaints, requests, notices, unread, markRead, noticePeriod };
 
-  const pages = {
-    home:           <PageHome          {...pageProps} />,
-    notices:        <PageNotices       notices={notices} markRead={markRead} />,
-    complaints:     <PageComplaints    complaints={complaints} setModal={setModal} />,
-    services:       <PageServices      requests={requests}    setModal={setModal} />,
-    invoices:       <PageInvoices />,
-    "notice-period":<PageNoticePeriod  noticePeriod={noticePeriod} setModal={setModal} />,
-  };
+  // const pages = {
+  //   home:           <PageHome          {...pageProps} />,
+  //   notices:        <PageNotices       notices={notices} markRead={markRead} />,
+  //   complaints:     <PageComplaints    complaints={complaints} setModal={setModal} />,
+  //   services:       <PageServices      requests={requests}    setModal={setModal} />,
+  //   invoices:       <PageInvoices />,
+  //   "notice-period":<PageNoticePeriod  noticePeriod={noticePeriod} setModal={setModal} />,
+  // };
 
   return (
     <>
@@ -701,9 +587,7 @@ export default function ResidentDashboard() {
 
           {/* Content */}
           <main className="flex-1 overflow-y-auto bg-slate-50 p-4 lg:p-6">
-            <div className={`w-[90%] mx-auto transition-opacity duration-300 ${mounted ? "opacity-100 page-enter" : "opacity-0"}`}>
-              {pages[nav] || pages.home}
-            </div>
+             <Outlet/>
           </main>
 
           {/* Mobile bottom nav */}
@@ -713,7 +597,10 @@ export default function ResidentDashboard() {
               return (
                 <button
                   key={item.id}
-                  onClick={() => goNav(item.id)}
+                  onClick={() => {
+                    goNav(item.id);
+                    navigate(item.path);
+                  }}
                   className="relative flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl border-none bg-transparent cursor-pointer"
                 >
                   <Ic

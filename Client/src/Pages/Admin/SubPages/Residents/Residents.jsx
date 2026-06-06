@@ -194,8 +194,8 @@ export default function ResidentsSection() {
   );
 
   const addResident = (resident) => {
-    console.log(resident)
-    // assigneroom(resident)
+    // console.log(resident)
+    assigneroom(resident)
     resident.hostelId = id;
     setResidents((prev) => [resident, ...prev]);
   };

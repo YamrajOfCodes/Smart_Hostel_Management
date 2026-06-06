@@ -41,15 +41,6 @@ const Ic = ({ d, size = 18, sw = 2, fill = "none", stroke = "currentColor" }) =>
 );
 
 
-const TextInput = ({ ...props }) => (
-  <input {...props}
-    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-teal-400 focus:ring-2 focus:ring-teal-100 outline-none text-sm text-slate-800 bg-white transition-all" />
-);
-
-const TextArea = ({ ...props }) => (
-  <textarea {...props}
-    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-teal-400 focus:ring-2 focus:ring-teal-100 outline-none text-sm text-slate-800 bg-white transition-all resize-none" />
-);
 
   const [cat, setCat]           = useState("");
   const [title, setTitle]       = useState("");
@@ -58,9 +49,12 @@ const TextArea = ({ ...props }) => (
 
   const submit = (e) => {
     e.preventDefault();
-    if (!title || !cat) return;
-    onSubmit({ id: Date.now(), title, desc, date: "Today", status: "pending", cat });
-    onClose();
+
+    const payload = {
+      cat,title,desc,priority
+    }
+    onSubmit(payload)
+
   };
 
   return (
@@ -84,12 +78,13 @@ const TextArea = ({ ...props }) => (
 
         <div>
           <FieldLabel>Issue Title</FieldLabel>
-          <TextInput value={title} onChange={e => setTitle(e.target.value)} placeholder="Brief description of the issue…" />
+          <input type="text"  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-teal-400 focus:ring-2 focus:ring-teal-100 outline-none text-sm text-slate-800 bg-white transition-all" value={title} onChange={e => setTitle(e.target.value)} placeholder="Brief description of the issue…" />
         </div>
 
         <div>
           <FieldLabel>Details</FieldLabel>
-          <TextArea rows={3} value={desc} onChange={e => setDesc(e.target.value)} placeholder="Describe the problem in detail…" />
+          <textarea value={desc} onChange={(e)=>{setDesc(e.target.value)}}
+         className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-teal-400 focus:ring-2 focus:ring-teal-100 outline-none text-sm text-slate-800 bg-white transition-all resize-none" />
         </div>
 
         <div>

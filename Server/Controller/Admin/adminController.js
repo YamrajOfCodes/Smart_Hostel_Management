@@ -1,7 +1,7 @@
 import RoomDb from "../../Model/Room/roomSchema.js";
 import Hostel from "../../Model/Hostel/hostelModel.js"
 import User from "../../Model/User/userSchema.js"
-
+import complaintDb from "../../Model/Complaints/complaintSchema.js";
 
 export const RegisterHostel = async (req, res) => {
   try {
@@ -181,74 +181,107 @@ export const getallRooms = async(req,res)=>{
 }
 
 
-export const assignedRoom = async(req,res)=>{
-    try {
-      const { name, email, password, phone,role,joiningDate,deposite,room,hostelId} = req.body;
-  
-      if (!name || !email || !password || !phone ) {
-        return res.status(400).json({ message: "All required fields must be filled" });
-      }
-  
-      const existingUser = await User.findOne({ email });
-      const existingMob  = await User.findOne({phone});
-  
-      if (existingUser || existingMob) {
-        return res.status(400).json({ message: "User already exists" });
-      }
-  
-      const newUser = new User({
-        name,
-        email,
-        password,
-        phone,
-        deposite,
-        joiningDate,
-        room,
-        hostelId,
-        role:"resident"
+export const assignedRoom = async (req, res) => {
+  try {
+    const {
+      name,
+      email,
+      password,
+      phone,
+      joiningDate,
+      deposite,
+      room,
+      hostelId,
+    } = req.body;
+
+    // Validation
+    if (!name || !email || !password || !phone || !room || !hostelId) {
+      return res.status(400).json({
+        message: "All required fields must be filled",
       });
-  
-      await newUser.save();
-  
-      const userData = newUser.toObject();
-      delete userData.password;
-  
-    const getRooms = await RoomDb.find({
-     hostelId: req.params.hostelId,
+    }
+
+    // Check existing user
+    const existingUser = await User.findOne({
+      $or: [{ email }, { phone }],
     });
 
-
-const filteredRoom = getRooms.find(
-  (rm) => rm.roomNumber === room
-);
-
-console.log(filteredRoom)
-
-if (!filteredRoom) {
-  return res.status(404).json({
-    message: "Room not found",
-  });
-}
-
-filteredRoom.roomMembers.push({
-  name,
-  email,
-  bedNumber: room,
-  joinedAt:joiningDate
-});
-
-await filteredRoom.save();
-
-res.status(200).json({
-  message: "Member added successfully",
-  room: filteredRoom,
-});
-  
-    } catch (error) {
-      console.log(error);
-      res.status(500).json({ message: "Server Error" });
+    if (existingUser) {
+      return res.status(400).json({
+        message: "User already exists",
+      });
     }
-}
+
+    // Find room
+    const roomDoc = await RoomDb.findOne({
+      _id: room,
+      hostelId,
+    });
+
+    if (!roomDoc) {
+      return res.status(404).json({
+        message: "Room not found",
+      });
+    }
+
+    // Check room capacity
+    if (roomDoc.roomMembers.length >= roomDoc.totalBeds) {
+      return res.status(400).json({
+        message: "Room is already full",
+      });
+    }
+
+    // Create resident
+    const newUser = new User({
+      name,
+      email,
+      password,
+      phone,
+      joiningDate,
+      deposite,
+      room,
+      hostelId,
+      role: "resident",
+    });
+
+    await newUser.save();
+
+    // Add resident to room
+    roomDoc.roomMembers.push({
+      residentId: newUser._id,
+      name: newUser.name,
+      email: newUser.email,
+      bedNumber: roomDoc.roomMembers.length + 1,
+      joinedAt: joiningDate || new Date(),
+    });
+
+    // Update room status
+    if (roomDoc.roomMembers.length === roomDoc.totalBeds) {
+      roomDoc.status = "occupied";
+    } else {
+      roomDoc.status = "partial";
+    }
+
+    await roomDoc.save();
+
+    const userData = newUser.toObject();
+    delete userData.password;
+
+    return res.status(201).json({
+      success: true,
+      message: "Resident assigned successfully",
+      resident: userData,
+      room: roomDoc,
+    });
+  } catch (error) {
+    console.error("Assign Room Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
 
 
 export const unassigneRoom = async(req,res)=>{
@@ -433,5 +466,36 @@ export const deleteResident = async(req,res)=>{
   } catch (error) {
     console.log(error);
     return res.status(400).json({error:"error while deleting resident",error})
+  }
+}
+
+
+// update Complaint Status
+
+
+export const updateComplaintStatus = async(req,res)=>{
+  try {
+    const {complaintId} = req.params;
+    const {status} = req.body;
+
+    if(!status){
+      return res.status(400).json({error:"status is required"});
+    }
+
+    const updateComplaint = await complaintDb.findByIdAndUpdate(complaintId,{status},{
+      returnDocument:"after"
+    });
+
+    if(!updateComplaint){
+      return res.status(400).json({error:"complaint not found"});
+    }
+
+    await updateComplaint.save();
+
+    return res.status(200).json({message:"complaint is updated successfully"});
+    
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({error:"error while updating complaint status"});
   }
 }

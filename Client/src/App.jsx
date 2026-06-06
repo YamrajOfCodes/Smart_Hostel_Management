@@ -19,6 +19,10 @@ import RoomManagement from "./Pages/Admin/SubPages/Room_Management/RoomManagemen
 import ResidentsSection from "./Pages/Admin/SubPages/Residents/Residents";
 import RentRecords from "./Pages/Admin/SubPages/Payment/RentPayments";
 import HostelNotices from "./Pages/Admin/SubPages/Notice/HostelNotices";
+import ResidentHome from "./Pages/Resident/SubPages/ResidentOverView/ResidentOverView";
+import PageNotices from "./Pages/Resident/SubPages/Notices/Notices";
+import PageComplaints from "./Pages/Resident/SubPages/Complaints/Complaints";
+import PageAdminComplaints from "./Pages/Admin/SubPages/Complaints/Complaints";
 
 const App = () => {
   return (
@@ -37,7 +41,7 @@ const App = () => {
         <Route path="rooms" element={<RoomManagement />} />
         <Route path="residents" element={<ResidentsSection />} />
         <Route path="rent" element={<RentRecords />} />
-        <Route path="complaints" element={<div>Complaints</div>} />
+        <Route path="complaints" element={<PageAdminComplaints/>} />
         <Route path="notices" element={<HostelNotices/>} />
       </Route>
 
@@ -45,7 +49,12 @@ const App = () => {
 
 
       {/* Resident Routes */}
-      <Route path="/resident" element={<ResidentDashboard />} />
+      <Route path="/resident" element={<ResidentDashboard />} >
+      <Route index element={<ResidentHome />} />
+      <Route path="notices" element={<PageNotices/>}/>
+      <Route path="complaints" element={<PageComplaints/>}/>
+
+      </Route>
       
 
       {/* Super Admin Routes */}
