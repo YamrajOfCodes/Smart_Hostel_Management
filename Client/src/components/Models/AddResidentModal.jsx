@@ -32,6 +32,8 @@ function AddResidentModal({ onClose, onAdd, floors = [], rooms = [] }) {
     name: "", floor: "", room: "", phone: "", email: "", deposite: "",joiningDate:"",password:"",
   });
 
+  console.log(rooms);
+
   // Filter available rooms when floor changes
   useEffect(() => {
     if (!form.floor) return setAvailableRooms([]);
@@ -40,7 +42,9 @@ function AddResidentModal({ onClose, onAdd, floors = [], rooms = [] }) {
       .map(r => ({ id: r._id, roomNumber: r.roomNumber, totalBeds: r.totalBeds, occupied: r.roomMembers?.length || 0 }));
     setAvailableRooms(filtered);
     setForm(prev => ({ ...prev, room: "" })); // reset room on floor change
+    console.log(filtered)
   }, [form.floor]);
+
 
   const set = (key, value) => setForm(prev => ({ ...prev, [key]: value }));
 

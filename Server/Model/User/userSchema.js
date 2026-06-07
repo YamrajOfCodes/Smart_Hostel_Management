@@ -25,6 +25,10 @@ const userSchema = new mongoose.Schema({
     required:true
   },
 
+  roomNumber:{
+    type:String
+  },
+
   role: {
     type: String,
     enum: ["superadmin", "admin", "resident"],
@@ -45,6 +49,10 @@ const userSchema = new mongoose.Schema({
 
   joiningDate:{
     type:Date,
+  },
+
+  noticePeriod:{
+    type:String
   },
 
  tokens: [
@@ -77,7 +85,7 @@ userSchema.methods.generateToken = async function () {
   {
     _id: this._id,
     role: this.role,
-    ...(this.role === "resident" && { hostelId: this.hostelId }),
+    ...(this.role === "resident" && { hostelId: this.hostelId, roomNumber:this.roomNumber, name:this.name, email:this.email }),
   },
   USER_SECRET,
   { expiresIn: "1d" }

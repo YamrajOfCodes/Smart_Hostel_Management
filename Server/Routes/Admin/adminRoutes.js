@@ -19,7 +19,10 @@ deleteResident,
 updateComplaintStatus
 } from "../../Controller/Admin/adminController.js";
 import { createNotice, getNotices, updateNotice, deleteNotice } from "../../Controller/Admin/adminNoticeContoller.js";
+import {acceptedNoticePeriod,RejectedNoticePeriod,clearNoticePeriodAfterVacating} from "../../Controller/Admin/adminNoticePeriodController.js"
+
 import adminAuthenticate from "../../Middleware/Admin/adminAuthenticate.js";
+import { getAllNoticesForHostel } from "../../Controller/User/userNoticePeriodController.js";
 
 router.post("/registerHostel/:ownerId",RegisterHostel)
 router.get("/getHostels/:ownerId",getHostels)
@@ -56,5 +59,14 @@ router.delete("/deletenotice/:noticeId",adminAuthenticate,deleteNotice);
 // complaint router
 
 router.put("/updatecomplaint/:complaintId",adminAuthenticate,updateComplaintStatus);
+
+
+// noticePeriod router
+
+router.put("/accepted_noticeperiod",adminAuthenticate,acceptedNoticePeriod);
+router.put("/rejected_noticeperiod",adminAuthenticate,RejectedNoticePeriod);
+router.put("/clearnoticeperiod",adminAuthenticate,clearNoticePeriodAfterVacating)
+router.get("/getallnoticeperiods/:hostelId",adminAuthenticate,getAllNoticesForHostel);
+
 
 export default router;

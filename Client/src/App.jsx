@@ -23,6 +23,8 @@ import ResidentHome from "./Pages/Resident/SubPages/ResidentOverView/ResidentOve
 import PageNotices from "./Pages/Resident/SubPages/Notices/Notices";
 import PageComplaints from "./Pages/Resident/SubPages/Complaints/Complaints";
 import PageAdminComplaints from "./Pages/Admin/SubPages/Complaints/Complaints";
+import PageNoticePeriod from "./Pages/Resident/SubPages/NoticePeriod/NoticePeriod";
+import PageAdminNoticePeriod from "./Pages/Admin/SubPages/NoticePeriod/NoticePeriodPage";
 
 const App = () => {
   return (
@@ -43,6 +45,7 @@ const App = () => {
         <Route path="rent" element={<RentRecords />} />
         <Route path="complaints" element={<PageAdminComplaints/>} />
         <Route path="notices" element={<HostelNotices/>} />
+        <Route path="noticePeriod" element={<PageAdminNoticePeriod/>} />
       </Route>
 
 
@@ -53,6 +56,7 @@ const App = () => {
       <Route index element={<ResidentHome />} />
       <Route path="notices" element={<PageNotices/>}/>
       <Route path="complaints" element={<PageComplaints/>}/>
+      <Route path="notice-period" element={<PageNoticePeriod/>}/>
 
       </Route>
       

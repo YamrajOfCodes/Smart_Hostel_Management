@@ -12,6 +12,7 @@ export default function AdminDashboard() {
   { id: "rooms", label: "Room Management", icon: "rooms", path:`/admin/hostels/${id}/rooms` },
   { id: "users", label: "Residents", icon: "users", path:`/admin/hostels/${id}/residents` },
   { id: "rent", label: "Rent & Payments", icon: "money", path:`/admin/hostels/${id}/rent` },
+  { id: "noticeperiod", label: "NoticePeriod", icon: "noticePeriod", path:`/admin/hostels/${id}/noticePeriod` },
   { id: "complaints", label: "Complaints", icon: "complaint", path:`/admin/hostels/${id}/complaints` },
   { id: "notices", label: "Notices", icon: "bell", path:`/admin/hostels/${id}/notices` },
 ];
@@ -28,6 +29,7 @@ const Icons = {
   menu: "M3 12h18 M3 6h18 M3 18h18",
   close: "M18 6L6 18 M6 6l12 12",
   plus: "M12 5v14 M5 12h14",
+  noticePeriod:"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
   search: ["M11 17.25a6.25 6.25 0 110-12.5 6.25 6.25 0 010 12.5z", "M16 16l4.5 4.5"],
   chart: ["M18 20V10", "M12 20V4", "M6 20v-6"],
   check: "M20 6L9 17l-5-5",

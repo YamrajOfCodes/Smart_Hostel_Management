@@ -241,6 +241,7 @@ export const assignedRoom = async (req, res) => {
       deposite,
       room,
       hostelId,
+      roomNumber:roomDoc?.roomNumber,
       role: "resident",
     });
 
@@ -303,6 +304,14 @@ export const unassigneRoom = async(req,res)=>{
           return member
         }
     });
+
+    if(getroom.roomMembers?.length === getroom.totalBeds){
+      getroom.status = "occupied"
+    }else if(getroom.roomMembers?.length < getroom.totalBeds){
+      getroom.status = "partial"
+    }else{
+      getroom.status = "vacant"
+    }
     
     await getroom.save();
 

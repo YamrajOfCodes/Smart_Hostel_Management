@@ -127,7 +127,13 @@ export const useAssignedRoom = () => {
 
     onSuccess: (_, variables) => {
       toast.success("room assigned successfully");
-      queryClient.invalidateQueries({ queryKey: ["room"] });
+      queryClient.invalidateQueries({
+    queryKey: ["RESIDENTS"],
+  });
+
+  queryClient.invalidateQueries({
+    queryKey: ["room"],
+  });
     },
 
     onError: (error) => {
@@ -199,8 +205,10 @@ export const useChangeRoom = () => {
 
 
 export const useGetResidents = (hostelId) => {
+        console.log("Residents API called");
+
   return useQuery({
-    queryKey: ["RESIDENTS", hostelId],
+    queryKey: ["RESIDENTS","room", hostelId],
     queryFn: () => getResidents(hostelId).then((res) => res.data),
     enabled: !!hostelId,           
   });
