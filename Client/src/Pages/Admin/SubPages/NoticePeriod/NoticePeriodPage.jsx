@@ -4,9 +4,13 @@ import { useParams } from "react-router-dom";
 import {
  
 } from "../../../../hooks/UserHooks/noticePeriodHooks";
-import { useAcceptNoticePeriod, useRejectNoticePeriod,useClearNoticePeriod, useGetAllNoticesForHostel } from "../../../../hooks/AdminHooks/noticePeriodHooks";
+import { 
+  useAcceptNoticePeriod, 
+  useRejectNoticePeriod,
+  useClearNoticePeriod, 
+  useGetAllNoticesForHostel 
+} from "../../../../hooks/AdminHooks/noticePeriodHooks";
 
-// ─── Icon helper ──────────────────────────────────────────────────────────────
 const Icon = ({
   paths,
   size = 16,
@@ -45,7 +49,7 @@ const ICONS = {
   ban:           ["M12 2a10 10 0 100 20 10 10 0 000-20z","M4.93 4.93l14.14 14.14"],
 };
 
-// ─── Pure helpers ─────────────────────────────────────────────────────────────
+
 const getInitials = (name = "") =>
   name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
 
@@ -110,7 +114,6 @@ const ACTION_CONFIG = {
   },
 };
 
-// ─── Stat card ────────────────────────────────────────────────────────────────
 function StatCard({ iconPaths, dotClass, label, value, valueClass }) {
   return (
     <div className="bg-white border border-[#EAE7E2] rounded-xl p-4">
