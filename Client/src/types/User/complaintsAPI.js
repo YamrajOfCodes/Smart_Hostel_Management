@@ -31,7 +31,7 @@ export const getComplaints = async (hostelId) => {
 export const updateComplaint = async (data) => {
   const token = localStorage.getItem('login');
   const res =  await api.put(
-    `/admin/updatenotice/${data.complaintId}`,
+    `/admin/updatecomplaint/${data.complaintId}`,
     data,
     {
       headers: {

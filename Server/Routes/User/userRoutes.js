@@ -7,7 +7,7 @@ import AdminAuthenticate from "../../Middleware/Admin/adminAuthenticate.js";
 
 router.post("/raisecomplaint/:hostelId",userAuthenticate,raiseComplaint);
 router.get("/getallcomplaints/:hostelId",getallComplaints);
-router.delete("/deletecomplaint/:complaintId",userAuthenticate,deleteComplaint);
+router.delete("/deletecomplaint/:complaintId",AdminAuthenticate,deleteComplaint);
 
 
 // notice period routes

@@ -58,16 +58,19 @@ export const getallComplaints = async (req, res) => {
 };
 
 export const deleteComplaint = async(req,res)=>{
-    try {
-        const {hostelId} = req.params;
-        const complaints = await complaintDb.findOneAndDelete({hostelId});
-        if(!complaints){
-            return res.status(200).json({error:"no complaint found"});
-        }
+  try {
+    const {complaintId} = req.params;
 
-        return res.status(200).json({message:"complaint deleted successfully"});
-    } catch (error) {
-        console.log(error);
-        return res.status(400).json({error:"error while deleting complaints"})
+    const deleteComplaint = await complaintDb.findByIdAndDelete(complaintId);
+
+    if(!deleteComplaint){
+      return res.status(400).json({error:"complaint not found"});
     }
+
+    return res.status(200).json({message:"complaint is deleted"});
+
+  } catch (error) {
+    console.log("error while deleting the complaint");
+    return res.status(400).json({error:"error while deleting the complaint"});
+  }
 }

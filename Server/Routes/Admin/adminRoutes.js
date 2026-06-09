@@ -16,7 +16,7 @@ getResidents,
 getResidentById,
 updateResident,
 deleteResident,
-updateComplaintStatus
+updateComplaintStatus,
 } from "../../Controller/Admin/adminController.js";
 import { createNotice, getNotices, updateNotice, deleteNotice } from "../../Controller/Admin/adminNoticeContoller.js";
 import {acceptedNoticePeriod,RejectedNoticePeriod,clearNoticePeriodAfterVacating} from "../../Controller/Admin/adminNoticePeriodController.js"
