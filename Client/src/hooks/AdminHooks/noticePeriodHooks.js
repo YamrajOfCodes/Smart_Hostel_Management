@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { acceptNoticePeriod, clearNoticePeriod, getallNoticePeriod, rejectedNoticePeriod } from "../../types/Admin/noticePeriodAPI";
+import toast from "react-hot-toast";
 
 
 export const useGetAllNoticesForHostel = (hostelId) => {

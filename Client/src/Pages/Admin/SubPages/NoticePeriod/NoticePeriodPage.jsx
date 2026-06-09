@@ -4,12 +4,16 @@ import { useParams } from "react-router-dom";
 import {
  
 } from "../../../../hooks/UserHooks/noticePeriodHooks";
-import { 
-  useAcceptNoticePeriod, 
+import {
+  useAcceptNoticePeriod,
   useRejectNoticePeriod,
-  useClearNoticePeriod, 
+  useClearNoticePeriod,
   useGetAllNoticesForHostel 
 } from "../../../../hooks/AdminHooks/noticePeriodHooks";
+import StatCard from "../../../../components/AdminComponents/NoticePeriod/StateCard";
+import ResidentCard from "../../../../components/AdminComponents/NoticePeriod/ResidentCard";
+import ResidentDetailDrawer from "../../../../components/AdminComponents/NoticePeriod/ResidentDetailDrawer";
+import ActionConfirmModal from "../../../../components/Models/Admin/ActionConfirmModal";
 
 const Icon = ({
   paths,
@@ -61,14 +65,23 @@ const formatDate = (dateStr) => {
 };
 
 const getDaysUntilVacating = (noticePeriodStr) => {
-  const diff =
-    new Date(noticePeriodStr).getTime() - Date.now();
+  const diff = new Date(noticePeriodStr).getTime() - Date.now();
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 };
 
+const getNoticeState = (noticePeriod) => {
+  if (!noticePeriod)               return "none";
+  if (noticePeriod === "approved") return "approved";
+  if (noticePeriod === "rejected") return "rejected";
+  return "pending";
+};
+
+
+
+
 const getUrgencyConfig = (days) => {
-  if (days <= 7)  return { label: `${days}d left`, dot: "bg-red-500",    pill: "bg-red-50   text-red-700   border border-red-200"    };
-  if (days <= 14) return { label: `${days}d left`, dot: "bg-amber-500",  pill: "bg-amber-50 text-amber-700 border border-amber-200"  };
+  if (days <= 7)  return { label: `${days}d left`, dot: "bg-red-500",     pill: "bg-red-50   text-red-700   border border-red-200"    };
+  if (days <= 14) return { label: `${days}d left`, dot: "bg-amber-500",   pill: "bg-amber-50 text-amber-700 border border-amber-200"  };
   return              { label: `${days}d left`, dot: "bg-emerald-500", pill: "bg-emerald-50 text-emerald-700 border border-emerald-200" };
 };
 
@@ -83,9 +96,9 @@ const ACTION_CONFIG = {
     confirmClass: "bg-emerald-700 hover:bg-emerald-800 text-white",
     headerClass:  "text-emerald-700",
     checklist: [
-      "Notice period dates have been verified",
-      "Resident has been formally acknowledged",
-      "Room is scheduled for inspection on exit",
+      "Notice period dates have been verified.",
+      "Resident has been formally acknowledged.",
+      "Room is scheduled for inspection on exit.",
     ],
   },
   [ACTION.REJECT]: {
@@ -95,9 +108,9 @@ const ACTION_CONFIG = {
     confirmClass: "bg-red-700 hover:bg-red-800 text-white",
     headerClass:  "text-red-700",
     checklist: [
-      "Grounds for rejection have been documented",
-      "Resident has been informed of the reason",
-      "New notice period terms have been communicated",
+      "Grounds for rejection have been documented.",
+      "Resident has been informed of the reason.",
+      "New notice period terms have been communicated.",
     ],
   },
   [ACTION.CLEAR]: {
@@ -107,267 +120,14 @@ const ACTION_CONFIG = {
     confirmClass: "bg-[#1A1714] hover:bg-[#2D2825] text-white",
     headerClass:  "text-[#5A5248]",
     checklist: [
-      "Room has been inspected and cleared",
-      "Keys have been returned by the resident",
-      "Deposit refund has been processed",
+      "Room has been inspected and cleared.",
+      "Keys have been returned by the resident.",
+      "Deposit refund has been processed.",
     ],
   },
 };
 
-function StatCard({ iconPaths, dotClass, label, value, valueClass }) {
-  return (
-    <div className="bg-white border border-[#EAE7E2] rounded-xl p-4">
-      <div className={`w-1.5 h-1.5 rounded-full ${dotClass} mb-3`} />
-      <p className={`text-[22px] font-semibold leading-none mb-1 ${valueClass}`}>{value}</p>
-      <p className="text-[10px] font-semibold tracking-widest uppercase text-[#B0A898]">{label}</p>
-    </div>
-  );
-}
 
-// ─── Confirmation modal ───────────────────────────────────────────────────────
-function ActionConfirmModal({ resident, action, onConfirm, onCancel, isLoading }) {
-  const config = ACTION_CONFIG[action];
-
-  return (
-    <div className="fixed inset-0 bg-[#1A1714]/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden border border-[#EAE7E2] shadow-2xl">
-
-        {/* Header */}
-        <div className="px-6 pt-6 pb-4 border-b border-[#F2EFE9]">
-          <p className={`text-[10px] font-bold tracking-[0.1em] uppercase mb-1 ${config.headerClass}`}>
-            {config.label}
-          </p>
-          <p className="text-[20px] font-semibold text-[#1A1714]"
-            style={{ fontFamily: "'Georgia', serif" }}>
-            {config.title}
-          </p>
-        </div>
-
-        <div className="p-6 space-y-4">
-          {/* Resident summary */}
-          <div className="flex items-center gap-3 bg-[#F9F8F6] border border-[#EAE7E2] rounded-xl p-3.5">
-            <div className="w-9 h-9 rounded-lg bg-[#1A1714] text-white flex items-center justify-center text-xs font-semibold shrink-0">
-              {getInitials(resident.name)}
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-[#1A1714]">{resident.name}</p>
-              <p className="text-xs text-[#B0A898]">
-                Room {resident.roomNumber} · Vacating {resident.noticePeriod}
-              </p>
-            </div>
-          </div>
-
-          {/* Checklist */}
-          <div className="bg-amber-50 border border-amber-100 rounded-xl p-4">
-            <p className="text-[10px] font-bold tracking-widest uppercase text-amber-700 mb-2.5">
-              Confirm before proceeding
-            </p>
-            <ul className="space-y-1.5">
-              {config.checklist.map((item) => (
-                <li key={item} className="flex items-start gap-2 text-xs text-amber-800">
-                  <span className="mt-0.5 shrink-0">·</span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="flex gap-2.5 px-6 pb-6">
-          <button
-            onClick={onCancel}
-            disabled={isLoading}
-            className="flex-1 py-2.5 rounded-lg border border-[#EAE7E2] text-sm font-semibold text-[#5A5248] bg-white hover:bg-[#F9F8F6] transition-colors cursor-pointer disabled:opacity-50"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            disabled={isLoading}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold border-none cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${config.confirmClass}`}
-          >
-            {isLoading ? (
-              <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeOpacity="0.25"/>
-                <path d="M21 12a9 9 0 01-9 9"/>
-              </svg>
-            ) : null}
-            {isLoading ? "Processing…" : config.confirmLabel}
-          </button>
-        </div>
-
-      </div>
-    </div>
-  );
-}
-
-// ─── Resident detail drawer ───────────────────────────────────────────────────
-function ResidentDetailDrawer({ resident, onClose, onAction }) {
-  const days         = getDaysUntilVacating(resident.noticePeriod);
-  const urgency      = getUrgencyConfig(days);
-
-  const detailFields = [
-    { icon: ICONS.mail,        label: "Email",       value: resident.email,                                   bg: "bg-indigo-50"  },
-    { icon: ICONS.phone,       label: "Phone",       value: resident.phone,                                   bg: "bg-cyan-50"    },
-    { icon: ICONS.door,        label: "Room",        value: resident.roomNumber,                              bg: "bg-amber-50"   },
-    { icon: ICONS.joiningDate, label: "Joined",      value: formatDate(resident.joiningDate),                 bg: "bg-emerald-50" },
-    { icon: ICONS.rupee,       label: "Deposit",     value: `₹${Number(resident.deposite).toLocaleString("en-IN")}`, bg: "bg-violet-50"  },
-    { icon: ICONS.calendar,    label: "Vacating on", value: resident.noticePeriod,                            bg: "bg-red-50"     },
-  ];
-
-  return (
-    <div className="fixed inset-0 bg-[#1A1714]/35 backdrop-blur-sm z-40 flex items-end sm:items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden border border-[#EAE7E2]">
-
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#F2EFE9]">
-          <p className="text-sm font-semibold text-[#1A1714]">Resident details</p>
-          <button
-            onClick={onClose}
-            className="w-7 h-7 rounded-lg bg-[#F2EFE9] flex items-center justify-center hover:bg-[#EAE7E2] transition-colors cursor-pointer border-none"
-          >
-            <Icon paths={ICONS.x} size={13} stroke="#5A5248" />
-          </button>
-        </div>
-
-        <div className="p-6 space-y-5">
-          {/* Identity */}
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-[#1A1714] text-white flex items-center justify-center text-base font-semibold shrink-0">
-              {getInitials(resident.name)}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-base font-semibold text-[#1A1714]">{resident.name}</p>
-              <p className="text-xs text-[#B0A898] mt-0.5">Room {resident.roomNumber}</p>
-            </div>
-            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 ${urgency.pill}`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${urgency.dot}`} />
-              {urgency.label}
-            </span>
-          </div>
-
-          {/* Detail grid */}
-          <div className="grid grid-cols-2 gap-2.5">
-            {detailFields.map(({ icon, label, value, bg }) => (
-              <div key={label} className={`${bg} rounded-xl p-3`}>
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Icon paths={icon} size={11} stroke="currentColor" className="opacity-60" />
-                  <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">{label}</p>
-                </div>
-                <p className="text-sm font-medium text-slate-700 truncate">{value}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Actions */}
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              onClick={() => onAction(resident, ACTION.ACCEPT)}
-              className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold hover:bg-emerald-100 transition-colors cursor-pointer"
-            >
-              <Icon paths={ICONS.check} size={12} stroke="currentColor" />
-              Accept
-            </button>
-            <button
-              onClick={() => onAction(resident, ACTION.REJECT)}
-              className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs font-semibold hover:bg-red-100 transition-colors cursor-pointer"
-            >
-              <Icon paths={ICONS.ban} size={12} stroke="currentColor" />
-              Reject
-            </button>
-            <button
-              onClick={() => onAction(resident, ACTION.CLEAR)}
-              className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-[#F2EFE9] border border-[#DDD8D0] text-[#5A5248] text-xs font-semibold hover:bg-[#EAE7E2] transition-colors cursor-pointer"
-            >
-              <Icon paths={ICONS.check} size={12} stroke="currentColor" />
-              Vacated
-            </button>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  );
-}
-
-// ─── Resident card ────────────────────────────────────────────────────────────
-function ResidentCard({ resident, onViewDetails, onAction }) {
-  const days    = getDaysUntilVacating(resident.noticePeriod);
-  const urgency = getUrgencyConfig(days);
-
-  return (
-    <div className="bg-white border border-[#EAE7E2] rounded-xl p-4 hover:border-[#D0C8BE] hover:shadow-sm transition-all">
-
-      {/* Top row */}
-      <div
-        onClick={() => onViewDetails(resident)}
-        className="flex items-start gap-3 mb-3.5 cursor-pointer"
-      >
-        <div className="w-9 h-9 rounded-lg bg-[#1A1714] text-white flex items-center justify-center text-xs font-semibold shrink-0">
-          {getInitials(resident.name)}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-[#1A1714] truncate">{resident.name}</p>
-          <p className="text-xs text-[#B0A898] truncate">{resident.email}</p>
-        </div>
-        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0 ${urgency.pill}`}>
-          <span className={`w-1.5 h-1.5 rounded-full ${urgency.dot}`} />
-          {urgency.label}
-        </span>
-      </div>
-
-      {/* Meta */}
-      <div
-        onClick={() => onViewDetails(resident)}
-        className="flex items-center gap-4 pb-3.5 border-b border-[#F2EFE9] mb-3 cursor-pointer"
-      >
-        <span className="text-xs text-[#9B9086]">
-          <span className="block text-[#1A1714] font-medium text-[13px]">{resident.roomNumber}</span>
-          Room
-        </span>
-        <span className="text-xs text-[#9B9086]">
-          <span className="block text-[#1A1714] font-medium text-[13px]">{resident.noticePeriod}</span>
-          Vacating
-        </span>
-        <span className="text-xs text-[#9B9086]">
-          <span className="block text-[#1A1714] font-medium text-[13px]">
-            ₹{Number(resident.deposite).toLocaleString("en-IN")}
-          </span>
-          Deposit
-        </span>
-      </div>
-
-      {/* Action buttons */}
-      <div className="flex gap-1.5">
-        <button
-          onClick={() => onAction(resident, ACTION.ACCEPT)}
-          className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-semibold hover:bg-emerald-100 transition-colors cursor-pointer"
-        >
-          <Icon paths={ICONS.check} size={11} stroke="currentColor" />
-          Accept
-        </button>
-        <button
-          onClick={() => onAction(resident, ACTION.REJECT)}
-          className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-[11px] font-semibold hover:bg-red-100 transition-colors cursor-pointer"
-        >
-          <Icon paths={ICONS.ban} size={11} stroke="currentColor" />
-          Reject
-        </button>
-        <button
-          onClick={() => onAction(resident, ACTION.CLEAR)}
-          className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-[#F2EFE9] border border-[#DDD8D0] text-[#5A5248] text-[11px] font-semibold hover:bg-[#EAE7E2] transition-colors cursor-pointer"
-        >
-          <Icon paths={ICONS.check} size={11} stroke="currentColor" />
-          Vacated
-        </button>
-      </div>
-
-    </div>
-  );
-}
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
 export default function PageAdminNoticePeriod() {
   const { id: hostelId } = useParams();
 
@@ -377,56 +137,55 @@ export default function PageAdminNoticePeriod() {
 
   const { data: notices = [], isLoading } = useGetAllNoticesForHostel(hostelId);
 
-  // Original hook — payload shape preserved exactly as in source
   const { mutate: clearNotice,  isPending: isClearing  } = useClearNoticePeriod();
   const { mutate: acceptNotice, isPending: isAccepting } = useAcceptNoticePeriod();
   const { mutate: rejectNotice, isPending: isRejecting } = useRejectNoticePeriod();
 
   const isProcessing = isClearing || isAccepting || isRejecting;
 
-  // Search filter
-  const filteredResidents = notices.filter((resident) => {
-    const query = searchQuery.toLowerCase();
+  /* Search */
+  const filteredResidents = notices.filter((r) => {
+    const q = searchQuery.toLowerCase();
     return (
-      !query ||
-      resident.name.toLowerCase().includes(query)       ||
-      resident.email.toLowerCase().includes(query)      ||
-      resident.roomNumber.toLowerCase().includes(query) ||
-      resident.phone.includes(query)
+      !q ||
+      r.name.toLowerCase().includes(q)       ||
+      r.email.toLowerCase().includes(q)      ||
+      r.roomNumber.toLowerCase().includes(q) ||
+      r.phone.includes(q)
     );
   });
 
-  // Stat counts
-  const urgentCount   = notices.filter((r) => getDaysUntilVacating(r.noticePeriod) <= 7).length;
-  const soonCount     = notices.filter((r) => { const d = getDaysUntilVacating(r.noticePeriod); return d > 7 && d <= 14; }).length;
-  const upcomingCount = notices.filter((r) => getDaysUntilVacating(r.noticePeriod) > 14).length;
+  /* Stats */
+  const urgentCount   = notices.filter((r) => getNoticeState(r.noticePeriod) === "pending" && getDaysUntilVacating(r.noticePeriod) <= 7).length;
+  const soonCount     = notices.filter((r) => { if (getNoticeState(r.noticePeriod) !== "pending") return false; const d = getDaysUntilVacating(r.noticePeriod); return d > 7 && d <= 14; }).length;
+  const upcomingCount = notices.filter((r) => getNoticeState(r.noticePeriod) === "pending" && getDaysUntilVacating(r.noticePeriod) > 14).length;
 
-  function openActionModal(resident, action) {
+  const openActionModal = (resident, action) => {
     setDrawerResident(null);
     setPendingAction({ resident, action });
-  }
+  };
 
-  function handleConfirmAction() {
-    const { resident } = pendingAction;
+  const closeModal = () => setPendingAction(null);
 
-    // Exact original payload shape from source: { email, hostelId }
+  const handleConfirmAction = () => {
+    const { resident, action } = pendingAction;
     const payload = { email: resident.email, hostelId };
 
-    if (pendingAction.action === ACTION.CLEAR) {
-      // useClearNoticePeriod — original logic, untouched
-      clearNotice(payload, { onSuccess: () => setPendingAction(null) });
-    } else if (pendingAction.action === ACTION.ACCEPT) {
-      acceptNotice(payload, { onSuccess: () => setPendingAction(null) });
-    } else if (pendingAction.action === ACTION.REJECT) {
-      rejectNotice(payload, { onSuccess: () => setPendingAction(null) });
-    }
-  }
+    const mutationOptions = {
+      onSuccess: () => closeModal(),
+      onError:   () => closeModal(), 
+    };
+
+    if (action === ACTION.CLEAR)  clearNotice(payload,  mutationOptions);
+    if (action === ACTION.ACCEPT) acceptNotice(payload, mutationOptions);
+    if (action === ACTION.REJECT) rejectNotice(payload, mutationOptions);
+  };
 
   return (
     <div className="min-h-screen bg-[#F9F8F6]">
       <div className="max-w-4xl mx-auto px-4 py-7 space-y-6">
 
-        {/* ── Header ─────────────────────────────────────────────── */}
+        {/* Header */}
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
@@ -435,10 +194,8 @@ export default function PageAdminNoticePeriod() {
                 Hostel Management
               </span>
             </div>
-            <h1
-              className="text-[28px] leading-none text-[#1A1714] mb-1.5"
-              style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}
-            >
+            <h1 className="text-[28px] leading-none text-[#1A1714] mb-1.5"
+              style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
               Notice Period
             </h1>
             <p className="text-[13px] text-[#9B9086]">
@@ -451,15 +208,15 @@ export default function PageAdminNoticePeriod() {
           </button>
         </div>
 
-        {/* ── Stats ──────────────────────────────────────────────── */}
+        {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-          <StatCard dotClass="bg-[#3B82F6]" label="Total Notices"    value={notices.length}  valueClass="text-[#1A1714]" />
-          <StatCard dotClass="bg-red-500"    label="This Week"        value={urgentCount}     valueClass="text-red-700"   />
-          <StatCard dotClass="bg-amber-500"  label="Next 2 Weeks"     value={soonCount}       valueClass="text-amber-700" />
-          <StatCard dotClass="bg-emerald-500" label="Upcoming"        value={upcomingCount}   valueClass="text-emerald-700" />
+          <StatCard dotClass="bg-[#3B82F6]"  label="Total Notices" value={notices.length}  valueClass="text-[#1A1714]"    />
+          <StatCard dotClass="bg-red-500"     label="This Week"     value={urgentCount}     valueClass="text-red-700"      />
+          <StatCard dotClass="bg-amber-500"   label="Next 2 Weeks"  value={soonCount}       valueClass="text-amber-700"    />
+          <StatCard dotClass="bg-emerald-500" label="Upcoming"      value={upcomingCount}   valueClass="text-emerald-700"  />
         </div>
 
-        {/* ── Search ─────────────────────────────────────────────── */}
+        {/* Search */}
         <div className="flex items-center gap-3 bg-white border border-[#EAE7E2] rounded-xl px-4 py-2.5">
           <Icon paths={ICONS.search} size={14} stroke="#C0B8B0" />
           <input
@@ -470,16 +227,14 @@ export default function PageAdminNoticePeriod() {
             className="flex-1 text-sm text-[#1A1714] placeholder-[#C0B8B0] bg-transparent outline-none"
           />
           {searchQuery && (
-            <button
-              onClick={() => setSearchQuery("")}
-              className="text-[#C0B8B0] hover:text-[#5A5248] transition-colors cursor-pointer border-none bg-transparent"
-            >
+            <button onClick={() => setSearchQuery("")}
+              className="text-[#C0B8B0] hover:text-[#5A5248] transition-colors cursor-pointer border-none bg-transparent">
               <Icon paths={ICONS.x} size={13} stroke="currentColor" />
             </button>
           )}
         </div>
 
-        {/* ── List ───────────────────────────────────────────────── */}
+        {/* List */}
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
             <svg className="animate-spin w-5 h-5 text-[#9E8E7A]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -494,9 +249,7 @@ export default function PageAdminNoticePeriod() {
             </div>
             <p className="text-sm font-semibold text-[#1A1714] mb-1">No notices found</p>
             <p className="text-xs text-[#B0A898]">
-              {searchQuery
-                ? "Try a different search term."
-                : "No residents have submitted a notice period yet."}
+              {searchQuery ? "Try a different search term." : "No residents have submitted a notice period yet."}
             </p>
           </div>
         ) : (
@@ -519,7 +272,7 @@ export default function PageAdminNoticePeriod() {
 
       </div>
 
-      {/* ── Drawer ─────────────────────────────────────────────────────────── */}
+
       {drawerResident && (
         <ResidentDetailDrawer
           resident={drawerResident}
@@ -528,13 +281,12 @@ export default function PageAdminNoticePeriod() {
         />
       )}
 
-      {/* ── Confirm modal ──────────────────────────────────────────────────── */}
       {pendingAction && (
         <ActionConfirmModal
           resident={pendingAction.resident}
           action={pendingAction.action}
           onConfirm={handleConfirmAction}
-          onCancel={() => setPendingAction(null)}
+          onCancel={closeModal}
           isLoading={isProcessing}
         />
       )}

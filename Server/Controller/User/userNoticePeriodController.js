@@ -59,12 +59,15 @@ export const submitNoticePeriod = async (req, res) => {
     }
 
     /* Check if a notice period is already active */
-    if (resident.noticePeriod) {
-      return res.status(409).json({
-        success: false,
-        message: `A notice period is already active with vacating date: ${resident.noticePeriod}`,
-      });
-    }
+
+if (resident.noticePeriod && resident.noticePeriod !== "rejected") {
+  return res.status(409).json({
+    success: false,
+    message: resident.noticePeriod === "approved"
+      ? "Your notice is already approved by the warden."
+      : "You already have a pending notice awaiting approval.",
+  });
+}
 
     /* Save the formatted date string into noticePeriod field */
     resident.noticePeriod = formatted;
