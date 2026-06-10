@@ -34,6 +34,7 @@ const MOCK_COMPLAINTS = [
   { id: 8, issueTitle: "Clogged washroom drain",      details: "The common washroom drain on floor 3 has been clogged for two days now. Water pooling.",             date: "6 Apr 2025",  status: "pending",     category: "Plumbing",     resident: "Ananya Singh",  room: "C-305", initials: "AS" },
 ];
 
+console.log("hello");
 
 
 function PageAdminComplaints() {
