@@ -192,27 +192,16 @@ export const assignedRoom = async (req, res) => {
       deposite,
       room,
       hostelId,
+      existresident,
     } = req.body;
 
-    // Validation
-    if (!name || !email || !password || !phone || !room || !hostelId) {
+    if (!phone || !room || !hostelId) {
       return res.status(400).json({
-        message: "All required fields must be filled",
+        success: false,
+        message: "Phone, room and hostel are required",
       });
     }
 
-    // Check existing user
-    const existingUser = await User.findOne({
-      $or: [{ email }, { phone }],
-    });
-
-    if (existingUser) {
-      return res.status(400).json({
-        message: "User already exists",
-      });
-    }
-
-    // Find room
     const roomDoc = await RoomDb.findOne({
       _id: room,
       hostelId,
@@ -220,58 +209,86 @@ export const assignedRoom = async (req, res) => {
 
     if (!roomDoc) {
       return res.status(404).json({
+        success: false,
         message: "Room not found",
       });
     }
 
-    // Check room capacity
     if (roomDoc.roomMembers.length >= roomDoc.totalBeds) {
       return res.status(400).json({
+        success: false,
         message: "Room is already full",
       });
     }
 
-    // Create resident
-    const newUser = new User({
-      name,
-      email,
-      password,
-      phone,
-      joiningDate,
-      deposite,
-      room,
-      hostelId,
-      roomNumber:roomDoc?.roomNumber,
-      role: "resident",
-    });
+    let resident;
 
-    await newUser.save();
+    if (existresident) {
+      resident = await User.findOne({
+        $or: [{ phone }, { email }],
+      });
 
-    // Add resident to room
+      if (!resident) {
+        return res.status(404).json({
+          success: false,
+          message: "Resident not found",
+        });
+      }
+
+      resident.room = room;
+      resident.roomNumber = roomDoc.roomNumber;
+      resident.hostelId = hostelId;
+      resident.joiningDate = joiningDate || resident.joiningDate;
+
+      await resident.save();
+    } else {
+      const alreadyExists = await User.findOne({
+        $or: [{ email }, { phone }],
+      });
+
+      if (alreadyExists) {
+        return res.status(400).json({
+          success: false,
+          message: "User already exists",
+        });
+      }
+
+      resident = await User.create({
+        name,
+        email,
+        password,
+        phone,
+        joiningDate,
+        deposite,
+        room,
+        hostelId,
+        roomNumber: roomDoc.roomNumber,
+        role: "resident",
+      });
+    }
+
     roomDoc.roomMembers.push({
-      residentId: newUser._id,
-      name: newUser.name,
-      email: newUser.email,
+      residentId: resident._id,
+      name: resident.name,
+      email: resident.email,
       bedNumber: roomDoc.roomMembers.length + 1,
       joinedAt: joiningDate || new Date(),
     });
 
-    // Update room status
-    if (roomDoc.roomMembers.length === roomDoc.totalBeds) {
-      roomDoc.status = "occupied";
-    } else {
-      roomDoc.status = "partial";
-    }
+    roomDoc.status =
+      roomDoc.roomMembers.length >= roomDoc.totalBeds
+        ? "occupied"
+        : "partial";
 
     await roomDoc.save();
 
-    const userData = newUser.toObject();
-    delete userData.password;
+    const residentData = resident.toObject();
+    delete residentData.password;
 
     return res.status(201).json({
       success: true,
       message: "Resident assigned successfully",
-      resident: userData,
+      resident: residentData,
       room: roomDoc,
     });
   } catch (error) {
@@ -280,6 +297,7 @@ export const assignedRoom = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Server Error",
+      error: error.message,
     });
   }
 };

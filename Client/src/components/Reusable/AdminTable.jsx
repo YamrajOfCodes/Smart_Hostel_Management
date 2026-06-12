@@ -127,7 +127,7 @@ function detectNameColumn(columns) {
 }
 
 // ── Main Table ────────────────────────────────────────────────────────────────
-function Table({ columns, data, loading = false, onEdit, onDelete, setUpdateResidentModal }) {
+function Table({ columns, data, loading = false, onEdit, onDelete, setUpdateResidentModal,setExistingRes }) {
   const [sortKey, setSortKey] = useState(null);
   const [sortDir, setSortDir] = useState("asc");
   const [deletingId, setDeletingId] = useState(null);
@@ -137,6 +137,12 @@ function Table({ columns, data, loading = false, onEdit, onDelete, setUpdateResi
     if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
     else { setSortKey(key); setSortDir("asc"); }
   };
+
+  const handleSubmit = (data)=>{
+    console.log(data);
+    setExistingRes(data)
+  }
+
 
   const handleEdit = (row) => { console.log(row); onEdit?.(row); };
   const handleDelete = (row) => { console.log(row); onDelete?.(row); };
@@ -301,11 +307,24 @@ function Table({ columns, data, loading = false, onEdit, onDelete, setUpdateResi
                       <td
                         key={col.key}
                         className={`px-4 py-3 text-sm text-slate-700 whitespace-nowrap
-                          ${col.align === "right" ? "text-right" : ""}
-                          ${col.className || ""}
-                        `}
+                       ${col.align === "right" ? "text-right" : ""}
+                       ${col.className || ""}
+                     `}
                       >
-                        {col.render ? col.render(row) : (row[col.key] ?? "—")}
+                        {col.render
+                          ? col.render(row)
+                          : row[col.key] != null && row[col.key] !== ""
+                            ? row[col.key]
+                            : (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-dashed border-slate-300 text-slate-400 text-xs font-medium cursor-pointer hover:border-indigo-400 hover:text-indigo-500 hover:bg-indigo-50 transition-all duration-150 select-none"
+                               onClick={()=>{handleSubmit(row)}}>
+                                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                                  <path d="M5 1v8M1 5h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                                </svg>
+                                {col.emptyLabel || "Assign"}
+                              </span>
+                            )
+                        }
                       </td>
                     ))}
                   </tr>

@@ -7,6 +7,7 @@ export default function AdminDashboard() {
   const {id} = useParams();
   const {mutate:logout} = useLogout();
 
+
   const navItems = [
   { id: "dashboard", label: "Dashboard", icon: "home", path:`/admin/hostels/${id}` },
   { id: "rooms", label: "Room Management", icon: "rooms", path:`/admin/hostels/${id}/rooms` },

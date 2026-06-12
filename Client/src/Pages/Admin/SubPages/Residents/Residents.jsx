@@ -7,6 +7,7 @@ import Table from "../../../../components/Reusable/AdminTable";
 import DepositForm from "../../../../components/Models/DepositeForm";
 import { useDeleteResident, useUpdateResident } from "../../../../hooks/AdminHooks/ResidentsHooks";
 import DeleteModal from "../../../../components/Models/DeleteModal";
+import AssignExistingResident from "../../../../components/Models/Admin/AssignExistingResident";
 
 // ─────────────────────────────────────────────────────
 // ICONS
@@ -150,6 +151,17 @@ const columns = [
 // HELPERS
 
 
+
+      // name,
+      // email,
+      // password,
+      // phone,
+      // joiningDate,
+      // deposite,
+      // room,
+      // hostelId,
+
+
 // MAIN PAGE
 // ─────────────────────────────────────────────────────
 export default function ResidentsSection() {
@@ -162,6 +174,7 @@ export default function ResidentsSection() {
 
   const [updateModal, setupdateModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
+  const [addExistingRes,setExistingRes] = useState(null);
 
   const { id } = useParams();
   const { data: gethostelById } = useGetHosetlById(id);
@@ -194,9 +207,10 @@ export default function ResidentsSection() {
   );
 
   const addResident = (resident) => {
-    // console.log(resident)
-    assigneroom(resident)
+    addExistingRes? resident.existresident = true : resident.existresident = false
     resident.hostelId = id;
+    assigneroom(resident)
+    console.log(resident);
     setResidents((prev) => [resident, ...prev]);
   };
 
@@ -228,6 +242,14 @@ export default function ResidentsSection() {
       }
     });
   };
+
+  const handleResidentModel = ()=>{
+     addExistingRes ? setExistingRes(null) : setShowModal(false); 
+  }
+
+  const handleAssigning = (data)=>{
+      console.log(data);
+  }
 
 
   return (
@@ -364,6 +386,7 @@ export default function ResidentsSection() {
             onEdit={handleEdit}
             onDelete={handleDelete}
             setUpdateResidentModal={setupdateModal}
+            setExistingRes={setExistingRes}
           />
         </div>
 
@@ -392,12 +415,13 @@ export default function ResidentsSection() {
 
 
       {/* MODAL */}
-      {showModal && (
+      {showModal || addExistingRes && (
         <AddResidentModal
-          onClose={() => setShowModal(false)}
+          onClose={handleResidentModel}
           onAdd={addResident}
           floors={floors}
           rooms={rooms}
+          existingRes={addExistingRes}
         />
       )}
 
@@ -414,6 +438,16 @@ export default function ResidentsSection() {
       }
 
 
+      {/* {
+        addExistingRes && (
+          <AssignExistingResident
+          isOpen={addExistingRes}
+          onClose={()=>{setExistingRes(null)}}
+          onSubmit={handleAssigning}
+          existingRes={addExistingRes}
+          />
+        )
+      } */}
     </>
   );
 }

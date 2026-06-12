@@ -25,7 +25,7 @@ function InputWithIcon({ icon: Icon, ...props }) {
 }
 
 // ── Component ──────────────────────────────────────────────────────────
-function AddResidentModal({ onClose, onAdd, floors = [], rooms = [] }) {
+function AddResidentModal({ onClose, onAdd, floors = [], rooms = [],existingRes}) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableRooms, setAvailableRooms] = useState([]);
   const [form, setForm] = useState({
@@ -33,6 +33,15 @@ function AddResidentModal({ onClose, onAdd, floors = [], rooms = [] }) {
   });
 
   console.log(rooms);
+
+   useEffect(() => {
+    if (existingRes) {
+     form.name = existingRes.name
+     form.deposite =existingRes.deposite
+     form.email = existingRes.email
+     form.phone = existingRes.phone
+    }
+  }, [existingRes]);
 
   // Filter available rooms when floor changes
   useEffect(() => {

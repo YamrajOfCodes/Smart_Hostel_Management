@@ -112,6 +112,7 @@ const grouped = floors
     const addResident = (resident) => {
     console.log(resident)
     resident.hostelId = id;
+    resident.existresident = false
     // console.log(resident)
     assigneroom(resident)
   };
