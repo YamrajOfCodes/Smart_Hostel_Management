@@ -1,76 +1,81 @@
-import mongoose from "mongoose"
-import bcrypt from "bcrypt"
-const USER_SECRET = "sdoskdok"
-import jwt from "jsonwebtoken"
+import mongoose from "mongoose";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true
+    required: true,
   },
 
   email: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
 
   password: {
     type: String,
-    required: true
+    required: true,
   },
 
   phone: {
     type: String,
-    required:true
+    required: true,
   },
 
-  roomNumber:{
-    type:String
+  roomNumber: {
+    type: String,
   },
 
   role: {
     type: String,
     enum: ["superadmin", "admin", "resident"],
-    default: "student"
+    default: "resident", 
   },
 
-  hostelId:{
-    type:String
+ hostelId: {
+    type: [String],
   },
 
-  deposite:{
+  deposite: {
     type: String,
   },
 
-  room:{
+  room: {
     type: String,
   },
 
-  joiningDate:{
-    type:Date,
+  joiningDate: {
+    type: Date,
   },
 
-  noticePeriod:{
-    type:String
+  noticePeriod: {
+    type: String,
   },
 
- tokens: [
+  tokens: [
     {
       token: {
-        type:String
-      }
-    }
+        type: String,
+      },
+    },
   ],
 
+ 
+  pushSubscription: {
+    endpoint: { type: String, default: null },
+    keys: {
+      p256dh: { type: String, default: null },
+      auth:   { type: String, default: null },
+    },
+  },
 
   createdAt: {
     type: Date,
-    default: Date.now
-  }
-
+    default: Date.now,
+  },
 });
-
 
 userSchema.pre("save", async function () {
   if (this.isModified("password")) {
@@ -78,26 +83,34 @@ userSchema.pre("save", async function () {
   }
 });
 
-
 userSchema.methods.generateToken = async function () {
   try {
-  const token = jwt.sign(
-  {
-    _id: this._id,
-    role: this.role,
-    ...(this.role === "resident" && { hostelId: this.hostelId, roomNumber:this.roomNumber, name:this.name, email:this.email }),
-  },
-  USER_SECRET,
-  { expiresIn: "1d" }
-);
+    const token = jwt.sign(
+      {
+        _id: this._id,
+        role: this.role,
+        ...(this.role === "resident" && {
+          hostelId: this.hostelId,
+          roomNumber: this.roomNumber,
+          name: this.name,
+          email: this.email,
+        }),
+      },
+      "sdoskdok",
+      { expiresIn: "1d" }
+    );
+
     this.tokens = this.tokens.concat({ token });
     await this.save();
 
     return token;
-
   } catch (error) {
     console.log(error);
   }
+};
+
+userSchema.methods.hasPushSubscription = function () {
+  return !!this.pushSubscription?.endpoint;
 };
 
 export default mongoose.model("User", userSchema);

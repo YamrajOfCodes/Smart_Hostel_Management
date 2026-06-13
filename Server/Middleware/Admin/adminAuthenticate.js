@@ -29,6 +29,8 @@ const AdminAuthenticate = async(req,res,next)=>{
       req.rootUser = rootUser
       req.userId = rootUser._id
 
+      console.log(req.userId);
+
       if(rootUser.role !== "admin"){
         return res.status(403).json({error:"Access denied, Admins only."})
       }

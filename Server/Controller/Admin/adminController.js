@@ -24,6 +24,14 @@ export const RegisterHostel = async (req, res) => {
       return res.status(400).json({message:"Code already exists"});
     }
 
+    const Owner = await User.findById(ownerId);
+
+    if(!Owner){
+      return res.status(400).json({error:"owner is not found"});
+    }
+
+
+
   
 
     const newUser = new Hostel({
@@ -36,6 +44,9 @@ export const RegisterHostel = async (req, res) => {
       rentAmount,
       room:rooms
     });
+
+    Owner.hostelId.push(newUser._id);
+    Owner.save();
 
     await newUser.save();
 

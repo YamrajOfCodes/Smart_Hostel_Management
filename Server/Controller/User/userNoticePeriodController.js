@@ -1,4 +1,5 @@
 import User from "../../Model/User/userSchema.js";
+import { notifyAdmins } from "../Activity/activityController.js";
 
 const NOTICE_PERIOD_DAYS = 30;
 
@@ -72,6 +73,13 @@ if (resident.noticePeriod && resident.noticePeriod !== "rejected") {
     /* Save the formatted date string into noticePeriod field */
     resident.noticePeriod = formatted;
     await resident.save();
+
+      await notifyAdmins({
+      hostelId: hostelId,
+      title: "🏠 New Notice Period Submitted",
+      body: `${resident.name} · Room ${resident.roomNumber} is moving out on ${resident.noticePeriod}`,
+    });
+ 
 
     return res.status(200).json({
       success: true,

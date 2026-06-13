@@ -10,6 +10,7 @@ import AddHostelModal from "../../../components/Models/AddHostelModal";
 import { usedeleteHostel, usegetHostels, useRegisterHostel, useUpdateHostel } from "../../../hooks/AdminHooks/adminHooks";
 import toast from "react-hot-toast";
 import DeleteModal from "../../../components/Models/DeleteModal";
+import { usePushSubscription } from "../../../hooks/ActivityHooks/activityHooks";
 
 
 const hostelsData = [
@@ -61,9 +62,16 @@ const hostelsData = [
 
 export default function HostelOverview() {
 
-    const login = localStorage.getItem("login");
-    const decodeToken = jwtDecode(login);
-    // console.log(decodeToken);
+  
+  const login = localStorage.getItem("login");
+  const decodeToken = jwtDecode(login);
+  console.log(decodeToken);
+  const { registerPush} = usePushSubscription();
+  
+  useEffect(() => { 
+    console.log("hello")
+    registerPush(); 
+  },[]);
 
   const [selectedHostel, setSelectedHostel] = useState(null);
   const [hostelModel,setHostelModal] = useState(false);
