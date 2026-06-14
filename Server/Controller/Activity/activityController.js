@@ -74,9 +74,13 @@ export const notifyAdmins = async ({ hostelId, title, body }) => {
       "pushSubscription.endpoint": { $ne: null },
     });
 
+    let filteredAdmins = admins.filter((admin) =>
+  admin?.hostelId?.some((id) => id.toString() === hostelId.toString())
+);
+
     console.log("Admins found:", admins.length);
 
-    if (!admins.length) {
+    if (!filteredAdmins.length) {
       console.log("No subscribed admins found");
       return;
     }
@@ -84,7 +88,7 @@ export const notifyAdmins = async ({ hostelId, title, body }) => {
     const payload = JSON.stringify({ title, body });
 
     await Promise.allSettled(
-      admins.map(async (admin) => {
+      filteredAdmins.map(async (admin) => {
         try {
           console.log(
             `Sending notification to ${admin.email}`
@@ -110,14 +114,14 @@ export const notifyAdmins = async ({ hostelId, title, body }) => {
             err.statusCode === 404 ||
             err.statusCode === 410
           ) {
-            await User.findByIdAndUpdate(admin._id, {
+            await User.findByIdAndUpdate(filteredAdmins._id, {
               "pushSubscription.endpoint": null,
               "pushSubscription.keys.p256dh": null,
               "pushSubscription.keys.auth": null,
             });
 
             console.log(
-              `Removed expired subscription for ${admin.email}`
+              `Removed expired subscription for ${filteredAdmins.email}`
             );
           }
         }

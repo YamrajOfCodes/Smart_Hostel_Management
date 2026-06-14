@@ -165,11 +165,11 @@ const grouped = floors
         notes
      }
 
-    //  createRoom(payload,{
-    //   onSuccess:()=>{
-    //     setAddRoomModel(false);
-    //   }
-    //  });
+     createRoom(payload,{
+      onSuccess:()=>{
+        setAddRoomModel(false);
+      }
+     });
   }
 
   return (
