@@ -2,47 +2,49 @@ import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { X, BedDouble, Plus, Loader2,  Wifi, Snowflake, Tv, Flame, Wind,
-  Bath, ParkingCircle, WashingMachine, Building2, Camera} from "lucide-react";
+import {
+  X, BedDouble, Plus, Loader2, Wifi, Snowflake, Tv, Flame, Wind,
+  Bath, ParkingCircle, WashingMachine, Building2, Camera
+} from "lucide-react";
 
 // ── Validation ─────────────────────────────────────────────────────────
 const schema = yup.object({
-  floor:        yup.string().required("Floor is required"),
-  roomNumber:   yup.string().required("Room number is required").matches(/^[A-Za-z0-9\-]+$/, "Letters, numbers and hyphens only").max(10, "Max 10 characters"),
+  floor: yup.string().required("Floor is required"),
+  roomNumber: yup.string().required("Room number is required").matches(/^[A-Za-z0-9\-]+$/, "Letters, numbers and hyphens only").max(10, "Max 10 characters"),
   roomCategory: yup.string().oneOf(["AC", "Non-AC"], "Select a valid type").required("Room type is required"),
-  roomType:     yup.string().oneOf(["Single", "Double", "Triple", "Quad", "Dormitory"]).required("Sharing type is required"),
-  totalBeds:    yup.number().typeError("Must be a number").min(1, "Min 1 bed").max(10, "Max 10 beds").integer().required("Total beds required"),
-  roomMembers:  yup.number().typeError("Must be a number").min(0).integer().required("Occupancy required")
+  roomType: yup.string().oneOf(["Single", "Double", "Triple", "Quad", "Dormitory"]).required("Sharing type is required"),
+  totalBeds: yup.number().typeError("Must be a number").min(1, "Min 1 bed").max(10, "Max 10 beds").integer().required("Total beds required"),
+  roomMembers: yup.number().typeError("Must be a number").min(0).integer().required("Occupancy required")
     .test("not-exceeds", "Cannot exceed total beds", function (val) {
       return val <= this.parent.totalBeds;
     }),
-  monthlyRent:  yup.number().typeError("Enter a valid amount").min(1, "Required").required("Rent is required"),
+  monthlyRent: yup.number().typeError("Enter a valid amount").min(1, "Required").required("Rent is required"),
   securityDeposit: yup.number().typeError("Enter a valid amount").min(0).default(0),
-  status:       yup.string().oneOf(["vacant", "occupied", "partial", "maintenance"]).required(),
-  amenities:    yup.array().of(yup.string()).default([]),
-  notes:        yup.string().max(300, "Max 300 characters").optional(),
+  status: yup.string().oneOf(["vacant", "occupied", "partial", "maintenance"]).required(),
+  amenities: yup.array().of(yup.string()).default([]),
+  notes: yup.string().max(300, "Max 300 characters").optional(),
 });
 
 // ── Constants ──────────────────────────────────────────────────────────
 const SHARING_TYPES = ["Single", "Double", "Triple", "Quad", "Dormitory"];
 const STATUS_OPTIONS = [
-  { value: "vacant",      label: "Vacant",      color: "text-emerald-700 bg-emerald-50 border-emerald-200" },
-  { value: "occupied",    label: "Occupied",    color: "text-blue-700 bg-blue-50 border-blue-200" },
-  { value: "partial",     label: "Partial",     color: "text-amber-700 bg-amber-50 border-amber-200" },
+  { value: "vacant", label: "Vacant", color: "text-emerald-700 bg-emerald-50 border-emerald-200" },
+  { value: "occupied", label: "Occupied", color: "text-blue-700 bg-blue-50 border-blue-200" },
+  { value: "partial", label: "Partial", color: "text-amber-700 bg-amber-50 border-amber-200" },
   { value: "maintenance", label: "Maintenance", color: "text-rose-700 bg-rose-50 border-rose-200" },
 ];
 
 const AMENITIES = [
-  { id: "wifi",          label: "Wi-Fi",       icon: Wifi },
-  { id: "ac",            label: "AC",          icon: Snowflake },
-  { id: "tv",            label: "TV",          icon: Tv },
-  { id: "geyser",        label: "Geyser",      icon: Flame },
-  { id: "fridge",        label: "Fridge",      icon: Wind },
+  { id: "wifi", label: "Wi-Fi", icon: Wifi },
+  { id: "ac", label: "AC", icon: Snowflake },
+  { id: "tv", label: "TV", icon: Tv },
+  { id: "geyser", label: "Geyser", icon: Flame },
+  { id: "fridge", label: "Fridge", icon: Wind },
   { id: "attached_bath", label: "Attach Bath", icon: Bath },
-  { id: "parking",       label: "Parking",     icon: ParkingCircle },
-  { id: "laundry",       label: "Laundry",     icon: WashingMachine },
-  { id: "balcony",       label: "Balcony",     icon: Building2 },
-  { id: "cctv",          label: "CCTV",        icon: Camera },
+  { id: "parking", label: "Parking", icon: ParkingCircle },
+  { id: "laundry", label: "Laundry", icon: WashingMachine },
+  { id: "balcony", label: "Balcony", icon: Building2 },
+  { id: "cctv", label: "CCTV", icon: Camera },
 ];
 
 // ── Helpers ────────────────────────────────────────────────────────────
@@ -71,40 +73,52 @@ const inputCls = (err) =>
    ${err ? "border-rose-300 bg-rose-50 focus:ring-rose-100" : "border-slate-200"}`;
 
 // ── Component ──────────────────────────────────────────────────────────
-export default function AddRoomModal({ onClose, onSubmit: onSubmitProp,Floors }) {
+export default function AddRoomModal({ onClose, onSubmit: onSubmitProp, Floors, EditRoom }) {
   const {
     register, handleSubmit, control, watch, setValue,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
-      floor: "", roomNumber: "", roomCategory: "", roomType: "",
-      totalBeds: "", roomMembers: 0, monthlyRent: "", securityDeposit: "",
-      status: "vacant", amenities: [], notes: "",
+      floor: EditRoom?.floor || "",
+      roomNumber: EditRoom?.roomNumber || "",
+      roomCategory: EditRoom?.roomCategory || "",
+      roomType: EditRoom?.roomType || "",
+      totalBeds: EditRoom?.totalBeds || "",
+      roomMembers: EditRoom?.roomMembers?.length || 0,
+      monthlyRent: EditRoom?.monthlyRent || "",
+      securityDeposit: EditRoom?.securityDeposit || "",
+      status: EditRoom?.status || "vacant",
+      amenities: EditRoom?.amenities || [],
+      notes: EditRoom?.notes || "",
     },
   });
 
+  // console.log("addRoomModel",EditRoom)
+
   // Auto-derive status
-  const watchBeds    = watch("totalBeds");
+  const watchBeds = watch("totalBeds");
   const watchMembers = watch("roomMembers");
   useEffect(() => {
-    const beds    = Number(watchBeds);
+    const beds = Number(watchBeds);
     const members = Number(watchMembers);
     if (!beds) return;
-    if (members === 0)          setValue("status", "vacant");
-    else if (members >= beds)   setValue("status", "occupied");
-    else                        setValue("status", "partial");
+    if (members === 0) setValue("status", "vacant");
+    else if (members >= beds) setValue("status", "occupied");
+    else setValue("status", "partial");
   }, [watchBeds, watchMembers, setValue]);
 
   const watchAmenities = watch("amenities") || [];
-  const toggleAmenity  = (id) =>
+  const toggleAmenity = (id) =>
     setValue("amenities", watchAmenities.includes(id)
       ? watchAmenities.filter(amnty => amnty !== id)
       : [...watchAmenities, id]
     );
 
   const onSubmit = async (data) => {
-     onSubmitProp(data)
+    console.log("submitted data", data);
+    data.roomId = EditRoom?._id;
+    onSubmitProp(data)
   };
 
   return (
@@ -141,17 +155,17 @@ export default function AddRoomModal({ onClose, onSubmit: onSubmitProp,Floors })
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label required>Floor</Label>
-                <select {...register("floor")} className={inputCls(errors.floor)}>
+                <select {...register("floor")} className={inputCls(errors.floor)} disabled={EditRoom?._id}>
                   <option value="">Select floor</option>
-                  {Floors.map(floor => floor !== "All"  && <option key={floor} value={floor}>{
+                  {Floors.map(floor => floor !== "All" && <option key={floor} value={floor}>{
                     `${floor}${floor == 1
-                        ? "st"
-                        : floor == 2
-                          ? "nd"
-                          : floor == 3
-                            ? "rd"
-                            : "th"
-                      } Floor`
+                      ? "st"
+                      : floor == 2
+                        ? "nd"
+                        : floor == 3
+                          ? "rd"
+                          : "th"
+                    } Floor`
                   } </option>)}
                 </select>
                 <FieldError message={errors.floor?.message} />
@@ -159,7 +173,7 @@ export default function AddRoomModal({ onClose, onSubmit: onSubmitProp,Floors })
               <div>
                 <Label required>Room number</Label>
                 <input {...register("roomNumber")} placeholder="e.g. A-101"
-                  className={inputCls(errors.roomNumber)} />
+                  className={inputCls(errors.roomNumber)} disabled={EditRoom?._id} />
                 <FieldError message={errors.roomNumber?.message} />
               </div>
             </div>
@@ -180,7 +194,17 @@ export default function AddRoomModal({ onClose, onSubmit: onSubmitProp,Floors })
                         ${field.value === opt
                           ? "bg-slate-900 text-white border-slate-900"
                           : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"}`}>
-                      {opt === "AC" ? "❄️ AC" : "🌀 Non-AC"}
+                      {opt === "AC" ? (
+                        <span className="inline-flex items-center gap-1">
+                          <Snowflake size={14} className="text-sky-500" />
+                          AC
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1">
+                          <Wind size={14} className="text-slate-400" />
+                          Non-AC
+                        </span>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -278,9 +302,9 @@ export default function AddRoomModal({ onClose, onSubmit: onSubmitProp,Floors })
                 const Icon = amenity.icon;
                 return (
                   <button key={amenity.id} type="button" onClick={() => toggleAmenity(amenity.id)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all flex items-center gap-1.5
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1.5
                        not-only:${active
-                        ? "bg-slate-900 text-white border-slate-900"
+                        ? "bg-slate-900 border-slate-600"
                         : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"}`}>
                     <Icon size={13} />
                     {amenity.label}

@@ -110,6 +110,26 @@ export const getRooms = async (hostelId) => {
   return res.data;
 };
 
+export const EditRoom = async (data) => {
+  const token = localStorage.getItem('login');
+  const res =  await api.put(`/admin/updateRoom/${data.roomId}`, data, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return res.data;
+  }
+
+  export const DeleteRoom = async (roomId) => {
+    const token = localStorage.getItem('login');
+    const res =  await api.delete(`/admin/deleteRoom/${roomId}`, {  
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return res.data;
+  }
+
 
 
 export const assignRoom = async (data) => {

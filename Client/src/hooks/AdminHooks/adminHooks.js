@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createRoom, getHostels, registerHostel,updateHostel,deleteHostel, getRooms, getHostelById, assignRoom, unassignRoom, SwapRooms, ChangeRoom, getResidents } from "../../types/Admin/adminAPI";
+import { createRoom, getHostels, registerHostel,updateHostel,deleteHostel, getRooms, getHostelById, assignRoom, unassignRoom, SwapRooms, ChangeRoom, getResidents, EditRoom, DeleteRoom } from "../../types/Admin/adminAPI";
 import toast from "react-hot-toast";
 
 
@@ -117,6 +117,37 @@ export const useGetRooms = (hostelId) => {
     enabled: !!hostelId,           
   });
 };
+
+export const useEditRoom = (roomId)=>{
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: EditRoom,
+    onSuccess: (_, variables) => {
+      toast.success("room updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["room"] });
+    },
+    onError: (error) => {
+        console.log(error);
+      toast.error(error?.response?.data?.message  || "Something went wrong");
+    }
+})
+}
+
+export const useDeleteRoom = (roomId)=>{
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: DeleteRoom,
+    onSuccess:()=>{
+      toast.success("room deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["room"] });
+    },
+    onError:()=>{
+      toast.error("Failed to delete room");
+    }
+  })
+}
 
 
 export const useAssignedRoom = () => {

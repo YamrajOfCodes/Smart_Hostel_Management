@@ -17,6 +17,8 @@ getResidentById,
 updateResident,
 deleteResident,
 updateComplaintStatus,
+EditRoom,
+DeleteRoom,
 } from "../../Controller/Admin/adminController.js";
 import { createNotice, getNotices, updateNotice, deleteNotice } from "../../Controller/Admin/adminNoticeContoller.js";
 import {acceptedNoticePeriod,RejectedNoticePeriod,clearNoticePeriodAfterVacating} from "../../Controller/Admin/adminNoticePeriodController.js"
@@ -36,6 +38,9 @@ router.delete("/deleteHostel/:hostelId",adminAuthenticate,deleteHostel)
 router.post("/createRoom/:hostelId",adminAuthenticate,createRoom);
 router.get("/getallrooms/:hostelId",adminAuthenticate,getallRooms);
 router.put("/assignRoom/:hostelId",adminAuthenticate,assignedRoom);
+
+router.put("/updateRoom/:roomId",adminAuthenticate,EditRoom);
+router.delete("/deleteRoom/:roomId",adminAuthenticate,DeleteRoom);
 
 router.put("/unassignRoom/:roomId",adminAuthenticate,unassigneRoom);
 router.put("/swaprooms",adminAuthenticate,swapResidents);
