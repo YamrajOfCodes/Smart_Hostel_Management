@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { Search, Plus, BedDouble, Users, Wrench, Home, MoreVertical, MapPin } from "lucide-react";
-import {useParams} from "react-router-dom"
+import { useParams } from "react-router-dom"
 import FloorSection from "../../../../components/AdminComponents/Room_Management/FloorSection/FloorSection";
 import RoomAvatarStack from "../../../../components/Reusable/RoomAvtarStack";
 import AddRoomModal from "../../../../components/Models/AddRoomModal";
-import { useAssignedRoom, useCreateRoom, useGetHosetlById, useGetRooms, useUnAssignedRoom } from "../../../../hooks/AdminHooks/adminHooks";
+import { useAssignedRoom, useCreateRoom, useDeleteRoom, useEditRoom, useGetHosetlById, useGetRooms, useUnAssignedRoom } from "../../../../hooks/AdminHooks/adminHooks";
 import AddResidentModal from "../../../../components/Models/AddResidentModal";
 import RoomMembersPopup from "../../../../components/Models/RoomMembersModal";
+import DeleteModal from "../../../../components/Models/DeleteModal";
 
 // const  = [
 //   { id: "1", roomNo: "101", floor: "Ground Floor", beds: 3, occupied: 3, rent: 8000, status: "occupied",  residents: ["Arjun S", "Rahul M", "Karan P"], amenities: ["AC", "WiFi"], roomType: "Triple" },
@@ -21,95 +22,95 @@ import RoomMembersPopup from "../../../../components/Models/RoomMembersModal";
 // ];
 
 const STATUS = {
-  occupied:    { label: "Occupied",    bg: "bg-blue-50",    text: "text-blue-700",    dot: "bg-blue-500",    border: "border-blue-100" },
-  vacant:      { label: "Vacant",      bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500", border: "border-emerald-100" },
-  partial:     { label: "Partial",     bg: "bg-amber-50",   text: "text-amber-700",   dot: "bg-amber-500",   border: "border-amber-100" },
-  maintenance: { label: "Maintenance", bg: "bg-rose-50",    text: "text-rose-700",    dot: "bg-rose-500",    border: "border-rose-100" },
+  occupied: { label: "Occupied", bg: "bg-blue-50", text: "text-blue-700", dot: "bg-blue-500", border: "border-blue-100" },
+  vacant: { label: "Vacant", bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500", border: "border-emerald-100" },
+  partial: { label: "Partial", bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500", border: "border-amber-100" },
+  maintenance: { label: "Maintenance", bg: "bg-rose-50", text: "text-rose-700", dot: "bg-rose-500", border: "border-rose-100" },
 };
 
 const FLOOR_ACCENT = {
   "Ground Floor": "bg-violet-500",
-  "1st Floor":    "bg-sky-500",
-  "2nd Floor":    "bg-teal-500",
-  "3rd Floor":    "bg-amber-500",
+  "1st Floor": "bg-sky-500",
+  "2nd Floor": "bg-teal-500",
+  "3rd Floor": "bg-amber-500",
 };
 
 
 export default function RoomManagement() {
-  const [search, setSearch]           = useState("");
+  const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [activeFloor, setActiveFloor] = useState("All");
-  const [addRoomModel,setAddRoomModel] = useState(false);
-  const [addResidentModal,setAddResidentModal] = useState(false);
-  const [showroomMembers,setShowRoomMembers] = useState(false);
+  const [addRoomModel, setAddRoomModel] = useState(false);
+  const [addResidentModal, setAddResidentModal] = useState(false);
+  const [showroomMembers, setShowRoomMembers] = useState(false);
   const [selectedRoomId, setSelectedRoomId] = useState(null);
-  const {id} = useParams();
+  const [deleteRoomId,setDeleteRoomId] = useState(false);
+  const { id } = useParams();
 
-  const {mutate:createRoom} = useCreateRoom();
-  const {data:MOCK_ROOMS} = useGetRooms(id);
+  const { mutate: createRoom } = useCreateRoom();
+  const { data: MOCK_ROOMS } = useGetRooms(id);
   const selectedRoom = MOCK_ROOMS?.find(
-  room => room._id === selectedRoomId
-);
-  const {data:gethostelById} = useGetHosetlById(id);
-  const {mutate:assigneroom} = useAssignedRoom();
-  const {mutate:unassignroom} = useUnAssignedRoom();
-
-
-  
-
-  
+    room => room._id === selectedRoomId
+  );
+  const { data: gethostelById } = useGetHosetlById(id);
+  const { mutate: assigneroom } = useAssignedRoom();
+  const { mutate: unassignroom } = useUnAssignedRoom();
+  const { mutate: editroom } = useEditRoom();
+  const { mutate:deleteroom} = useDeleteRoom();
 
 
 
- 
-  const floors =  Array.from({length:gethostelById?.hostelFloors}).map((element,index)=> index+1);
+
+  const floors = Array.from({ length: gethostelById?.hostelFloors }).map((element, index) => index + 1);
   floors.unshift("All");
 
- const filtered = MOCK_ROOMS?.filter(room => {
-  const matchFloor  = activeFloor === "All" || room.floor == activeFloor;
-  const matchStatus = statusFilter === "all" || room.status === statusFilter;
-  const matchSearch = search === "" ||
-    room?.roomNo?.toLowerCase()?.includes(search.toLowerCase()) ||
-    room?.residents?.some(res => {
-      const name = typeof res === "string" ? res : res?.tenantId?.name || "";
-      return name.toLowerCase().includes(search.toLowerCase());
-    });
+  const filtered = MOCK_ROOMS?.filter(room => {
+    console.log(room);
+    const matchFloor = activeFloor === "All" || room.floor == activeFloor;
+    const matchStatus = statusFilter === "all" || room.status === statusFilter;
+    const matchSearch = search === "" ||
+      room?.roomNumber?.toLowerCase()?.includes(search.toLowerCase()) ||
+      room?.roomMembers?.some(res => {
+        const name = typeof res === "string" ? res : res?.name || "";
+        return name.toLowerCase().includes(search.toLowerCase());
+      });
 
-  return matchFloor && matchStatus && matchSearch;
-});
+    return matchFloor && matchStatus && matchSearch;
+  });
+
+  console.log(filtered);
 
 
-  filtered?.forEach((element,index)=>{
+  filtered?.forEach((element, index) => {
     // console.log(element.floor,activeFloor)
   })
 
-
-const grouped = floors
-  ?.filter((floor) => floor !== "All")
-  ?.map((floor) => ({
-    floor,
-    rooms: filtered?.filter(
-      (room) => String(room.floor) === String(floor)
-    ),
-  }))
-  ?.filter((grp) => grp.rooms?.length > 0);
+  const grouped = floors
+    ?.filter((floor) => floor !== "All")
+    ?.map((floor) => ({
+      floor,
+      rooms: filtered?.filter(
+        (room) => String(room.floor) === String(floor)
+      ),
+    }))
+    ?.filter((grp) => grp.rooms?.length > 0);
 
   // console.log(grouped);
 
   const stats = [
-    { label: "Total Rooms",  value: MOCK_ROOMS?.length,                                         icon: <Home size={16} />,    color: "text-slate-700",    iconBg: "bg-slate-100" },
-    { label: "Occupied",     value: MOCK_ROOMS?.filter(r => r.status === "occupied").length,     icon: <Users size={16} />,   color: "text-blue-600",     iconBg: "bg-blue-50" },
-    { label: "Vacant",       value: MOCK_ROOMS?.filter(r => r.status === "vacant").length,       icon: <BedDouble size={16}/>, color: "text-emerald-600", iconBg: "bg-emerald-50" },
-    { label: "Maintenance",  value: MOCK_ROOMS?.filter(r => r.status === "maintenance").length,  icon: <Wrench size={16} />,  color: "text-rose-600",     iconBg: "bg-rose-50" },
+    { label: "Total Rooms", value: MOCK_ROOMS?.length, icon: <Home size={16} />, color: "text-slate-700", iconBg: "bg-slate-100" },
+    { label: "Occupied", value: MOCK_ROOMS?.filter(r => r.status === "occupied").length, icon: <Users size={16} />, color: "text-blue-600", iconBg: "bg-blue-50" },
+    { label: "Vacant", value: MOCK_ROOMS?.filter(r => r.status === "vacant").length, icon: <BedDouble size={16} />, color: "text-emerald-600", iconBg: "bg-emerald-50" },
+    { label: "Maintenance", value: MOCK_ROOMS?.filter(r => r.status === "maintenance").length, icon: <Wrench size={16} />, color: "text-rose-600", iconBg: "bg-rose-50" },
   ];
 
-  const handleCloseRoomMembersModel = ()=>{
- setShowRoomMembers(false);
-  setSelectedRoomId(null);
+  const handleCloseRoomMembersModel = () => {
+    setShowRoomMembers(false);
+    setSelectedRoomId(null);
   }
 
 
-    const addResident = (resident) => {
+  const addResident = (resident) => {
     console.log(resident)
     resident.hostelId = id;
     resident.existresident = false
@@ -117,13 +118,13 @@ const grouped = floors
     assigneroom(resident)
   };
 
-  const handleRoomMembersPopup = ()=>{
+  const handleRoomMembersPopup = () => {
     setShowRoomMembers(false);
     setAddResidentModal(true)
   }
 
-  const handleUnassigned = (email,roomId)=>{
-    console.log(email,roomId);
+  const handleUnassigned = (email, roomId) => {
+    console.log(email, roomId);
     const payload = {
       email,
       roomId
@@ -132,48 +133,70 @@ const grouped = floors
   }
 
 
-  const handleRoomSubmit = (data)=>{
-
-    console.log(data);
+  const handleRoomSubmit = (data) => {
 
     const {
-        floor,
-        monthlyRent,
-        roomCategory,
-        roomMembers,
-        roomNumber,
-        roomType,
-        securityDeposit,
-        status,
-        totalBeds,
-        amenities,
-        notes
+      floor,
+      monthlyRent,
+      roomCategory,
+      roomMembers,
+      roomNumber,
+      roomType,
+      securityDeposit,
+      status,
+      totalBeds,
+      amenities,
+      notes,
+      roomId
     } = data;
 
-     const payload = {
-        hostelId:id,
-        floor,
-        monthlyRent,
-        roomCategory,
-        roomMembers,
-        roomNumber,
-        roomType,
-        securityDeposit,
-        status,
-        totalBeds,
-        amenities,
-        notes
-     }
+    const payload = {
+      hostelId: id,
+      floor,
+      monthlyRent,
+      roomCategory,
+      roomMembers,
+      roomNumber,
+      roomType,
+      securityDeposit,
+      status,
+      totalBeds,
+      amenities,
+      notes,
+      roomId
+    }
 
-     createRoom(payload,{
-      onSuccess:()=>{
+    if (addRoomModel?._id) {
+      editroom(payload, {
+        onSuccess: () => {
+          setAddRoomModel(false);
+        }
+      });
+      return;
+    }
+
+    createRoom(payload, {
+      onSuccess: () => {
         setAddRoomModel(false);
       }
-     });
+    });
   }
 
+
+    const handleDeleteRoom = () => { 
+
+       deleteroom(deleteRoomId, {
+       onSuccess: () => {
+        console.log("Room deleted successfully");
+      },
+      onError: (error) => {
+        console.log("Failed to delete room", error);
+      }
+    });
+     }
+
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="h-screen overflow-y-scroll">
 
       <div className="bg-white border-b border-slate-100 px-4 sm:px-6 lg:px-8 py-5">
         <div className="max-w-7xl mx-auto">
@@ -184,20 +207,20 @@ const grouped = floors
                 <MapPin size={12} /> Sunshine PG, Koregaon Park
               </p>
             </div>
-            <button className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-700 text-white rounded-xl text-sm font-bold transition-all shadow-sm self-start sm:self-auto" onClick={()=>{setAddRoomModel(true)}}>
+            <button className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-700 text-white rounded-xl text-sm font-bold transition-all shadow-sm self-start sm:self-auto" onClick={() => { setAddRoomModel(true) }}>
               <Plus size={15} /> Add Room
             </button>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5">
-            {stats.map(s => (
-              <div key={s.label} className="bg-slate-50 rounded-xl px-3 py-3 flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-lg ${s.iconBg} flex items-center justify-center ${s.color}`}>
-                  {s.icon}
+            {stats.map(stat => (
+              <div key={stat.label} className="bg-slate-50 rounded-xl px-3 py-3 flex items-center gap-3">
+                <div className={`w-8 h-8 rounded-lg ${stat.iconBg} flex items-center justify-center ${stat.color}`}>
+                  {stat.icon}
                 </div>
                 <div>
-                  <p className={`text-xl font-black ${s.color}`}>{s.value}</p>
-                  <p className="text-[11px] text-slate-400 leading-tight">{s.label}</p>
+                  <p className={`text-xl font-black ${stat.color}`}>{stat.value}</p>
+                  <p className="text-[11px] text-slate-400 leading-tight">{stat.label}</p>
                 </div>
               </div>
             ))}
@@ -217,27 +240,26 @@ const grouped = floors
                 <button
                   key={floor}
                   onClick={() => setActiveFloor(floor)}
-                  className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border
+                  className={`flex-shrink-0 px-3 py-1.5 rounded-lg cursor-pointer text-xs font-semibold transition-all border
                     ${isActive
                       ? floor === "All"
                         ? "bg-slate-900 text-white border-slate-900"
-                        : `${accent} text-white border-transparent`
+                        : `${accent}`
                       : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                     }`}
                 >
-{
-  floor === "All"
-    ? "All"
-    : `${floor}${
-        floor == 1
-          ? "st"
-          : floor == 2
-          ? "nd"
-          : floor == 3
-          ? "rd"
-          : "th"
-      } Floor`
-}                </button>
+                  {
+                    floor === "All"
+                      ? "All"
+                      : `${floor}${floor == 1
+                        ? "st"
+                        : floor == 2
+                          ? "nd"
+                          : floor == 3
+                            ? "rd"
+                            : "th"
+                      } Floor`
+                  }                </button>
               );
             })}
           </div>
@@ -251,7 +273,6 @@ const grouped = floors
               <option value="all">All Status</option>
               <option value="occupied">Occupied</option>
               <option value="partial">Partial</option>
-              <option value="vacant">Vacant</option>
               <option value="maintenance">Maintenance</option>
             </select>
 
@@ -277,47 +298,78 @@ const grouped = floors
             <p className="text-slate-400 font-medium text-sm">No rooms match your filters.</p>
           </div>
         ) : activeFloor !== "All" ? (
-          <FloorSection floor={activeFloor} rooms={filtered} setAddResidentModal={setAddResidentModal} setShowRoomMembers={setShowRoomMembers} setSelectedRoomId={setSelectedRoomId}/>
+          <FloorSection
+            floor={activeFloor}
+            rooms={filtered}
+            setAddResidentModal={setAddResidentModal}
+            setShowRoomMembers={setShowRoomMembers}
+            setSelectedRoomId={setSelectedRoomId}
+            setAddRoomModel={setAddRoomModel}
+            setDeleteRoom={setDeleteRoomId}
+          />
         ) : (
           grouped.map(({ floor, rooms }) => (
-            <FloorSection key={floor} floor={floor} rooms={rooms} setAddResidentModal={setAddResidentModal} setShowRoomMembers={setShowRoomMembers} setSelectedRoomId={setSelectedRoomId} />
+            <FloorSection
+              key={floor}
+              floor={floor}
+              rooms={rooms}
+              setAddResidentModal={setAddResidentModal}
+              setShowRoomMembers={setShowRoomMembers}
+              setSelectedRoomId={setSelectedRoomId}
+              setAddRoomModel={setAddRoomModel}
+              setDeleteRoom={setDeleteRoomId}
+            />
           ))
         )}
       </div>
 
       {
-       addRoomModel && (
-         <AddRoomModal
-         onClose={()=>{setAddRoomModel(false)}}
-         onSubmit={handleRoomSubmit}
-         Floors={floors}
-         />
+        addRoomModel && (
+          <AddRoomModal
+            onClose={() => { setAddRoomModel(false) }}
+            onSubmit={handleRoomSubmit}
+            Floors={floors}
+            EditRoom={addRoomModel}
+          />
         )
       }
 
       {
         addResidentModal && (
           <AddResidentModal
-          floors={floors}
-          onClose={()=>{setAddResidentModal(false)}}
-          rooms={MOCK_ROOMS}
-          onAdd={addResident}
+            floors={floors}
+            onClose={() => { setAddResidentModal(false) }}
+            rooms={MOCK_ROOMS}
+            onAdd={addResident}
           />
         )
       }
 
       {
         showroomMembers && (
-     <RoomMembersPopup
-  allRooms={MOCK_ROOMS}
-  onClose={handleCloseRoomMembersModel}
-  room={selectedRoom}
-  onUnassign={handleUnassigned}
-  onAddResident={handleRoomMembersPopup}
-/>
+          <RoomMembersPopup
+            allRooms={MOCK_ROOMS}
+            onClose={handleCloseRoomMembersModel}
+            room={selectedRoom}
+            onUnassign={handleUnassigned}
+            onAddResident={handleRoomMembersPopup}
+          />
         )
       }
-      
+
+      {
+        deleteRoomId && (
+          <DeleteModal
+          title={"Delete Room?"}
+          isOpen={deleteRoomId}
+          onClose={()=> setDeleteRoomId(false)}
+          itemName={"Delete Room?"}
+          description={"These action cannot be undone once proceed"}
+          onConfirm={handleDeleteRoom}
+          />
+        )
+      }
+
     </div>
   );
 }

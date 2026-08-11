@@ -1,4 +1,4 @@
-import { BedDouble } from "lucide-react";
+import { BedDouble, Pencil, Trash2 } from "lucide-react";
 import RoomAvatarStack from "../../../Reusable/RoomAvtarStack";
 import { useEffect } from "react";
 
@@ -17,19 +17,27 @@ const FLOOR_ACCENT = {
   "3rd Floor":    "bg-amber-500",
 };
 
-function RoomCard({ room,setAddResidentModal,setShowRoomMembers,key, setSelectedRoomId }) {
+function RoomCard({ room, setAddResidentModal, setShowRoomMembers, key, setSelectedRoomId, onEdit, onDelete }) {
   const s = STATUS[room.status];
   const fillPct = room.totalBeds > 0 ? Math.round((room.roomMembers?.length / room.totalBeds) * 100) : 0;
   const barColor = { occupied: "bg-blue-500", partial: "bg-amber-400", vacant: "bg-emerald-400", maintenance: "bg-rose-400" }[room.status];
 
-  // console.log(room)
+  const handleRoom = () => {
+    setShowRoomMembers(true);
+    setSelectedRoomId(room._id);
+  };
 
+  const handleEdit = (e) => {
+    e.stopPropagation();
+    console.log("editedroom",room);
+    onEdit?.(room);
+  };
 
-  const handleRoom = ()=>{
-   setShowRoomMembers(true);
-setSelectedRoomId(room._id);
-  }
-
+  const handleDelete = (e) => {
+    e.stopPropagation();
+    console.log(room?._id)
+    onDelete?.(room?._id);
+  };
 
   return (
     <div className="bg-white rounded-2xl border border-slate-100 p-4 flex flex-col gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
@@ -49,6 +57,27 @@ setSelectedRoomId(room._id);
             <p className="text-[11px] text-slate-400">{room.roomType} · {room.totalBeds} beds</p>
           </div>
         </div>
+
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={handleEdit}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+            title="Edit room"
+          >
+            <Pencil size={14} />
+          </button>
+          <button
+            onClick={handleDelete}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+            title="Delete room"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
+      </div>
+
+      {/* Status */}
+      <div className="flex items-center justify-end -mt-2">
         <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-semibold ${s.bg} ${s.text} ${s.border}`}>
           <div className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
           {room?.totalBeds === room?.roomMembers?.length ? "Full" : s.label}
