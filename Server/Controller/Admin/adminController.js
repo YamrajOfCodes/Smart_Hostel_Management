@@ -443,6 +443,48 @@ export const ChangeRoom = async(req,res)=>{
   }
 }
 
+export const  EditRoom = async(req,res)=>{
+  try {
+    const {roomId} = req.params;
+    const {roomNumber,floor,roomCategory,roomType,totalBeds,monthlyRent,securityDeposit,amenities,notes} = req.body;
+    
+    const getroom = await RoomDb.findById(roomId);
+    if(!getroom){
+      return res.status(400).json({error:"room is not found"})
+    }
+
+    getroom.roomNumber = roomNumber || getroom.roomNumber;
+    getroom.floor = floor || getroom.floor;
+    getroom.roomCategory = roomCategory || getroom.roomCategory;
+    getroom.roomType = roomType || getroom.roomType;
+    getroom.totalBeds = totalBeds || getroom.totalBeds;
+    getroom.monthlyRent = monthlyRent || getroom.monthlyRent;
+    getroom.securityDeposit = securityDeposit || getroom.securityDeposit;
+    getroom.amenities = amenities || getroom.amenities;
+    getroom.notes = notes || getroom.notes;
+
+    await getroom.save();
+    return res.status(200).json({message:"room updated successfully",data:getroom});
+  } catch (error) {
+    console.log("error while editing the room",error);
+    return res.status(400).json({error:"error while editing the room",error});
+  }
+}
+
+export const DeleteRoom = async(req,res)=>{
+  try {
+    const {roomId} = req.params;
+    const DeleteRoom = await RoomDb.findByIdAndDelete({_id:roomId});
+    if(!DeleteRoom){
+      return res.status(400).json({error:"room is not found"})
+    }
+    return res.status(200).json({message:"room deleted successfully"});
+  } catch (error) {
+    console.log("error while deleting the room",error);
+    return res.status(400).json({error:"error while deleting the room",error});
+  }
+}
+
 
 export const getResidents = async(req,res)=>{
   try {
